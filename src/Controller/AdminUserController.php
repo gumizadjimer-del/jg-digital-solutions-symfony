@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Service\CsvExporter;
 
 #[Route('/admin/users')]
 #[IsGranted('ROLE_ADMIN')]
@@ -19,18 +20,31 @@ final class AdminUserController extends AbstractController
 {
     private const PAGE_SIZE = 25;
 
+    #[Route('/export', name: 'app_admin_users_export', methods: ['GET'])]
+    public function export(Request $request, UserRepository $userRepository, CsvExporter $csvExporter): Response
+    {
+        [$search, $role, $status] = $this->readFilters($request);
+        $rows = $userRepository->buildAdminListQuery($search, $role, $status)->getQuery()->toIterable();
+
+        return $csvExporter->createResponse(
+            'user-accounts-' . date('Y-m-d') . '.csv',
+            ['ID', 'Username', 'Email', 'Role', 'Account status', 'Created at'],
+            $rows,
+            static fn (User $user): array => [
+                $user->getId(),
+                $user->getUsername(),
+                $user->getEmail(),
+                $user->getRole(),
+                $user->isActive() ? 'Active' : 'Disabled',
+                $user->getCreatedAt()?->format(DATE_ATOM) ?? '',
+            ]
+        );
+    }
+
     #[Route('', name: 'app_admin_users', methods: ['GET'])]
     public function index(Request $request, UserRepository $userRepository): Response
     {
-        $search = mb_substr(trim($request->query->getString('q')), 0, 100);
-        $role = $request->query->getString('role');
-        if (!in_array($role, ['user', 'staff', 'admin'], true)) {
-            $role = '';
-        }
-        $status = $request->query->getString('status');
-        if (!in_array($status, ['active', 'disabled'], true)) {
-            $status = '';
-        }
+        [$search, $role, $status] = $this->readFilters($request);
 
         $paginator = new Paginator($userRepository->buildAdminListQuery($search, $role, $status)->getQuery(), false);
         $totalUsers = count($paginator);
@@ -51,6 +65,22 @@ final class AdminUserController extends AbstractController
             'firstResult' => $totalUsers === 0 ? 0 : (($page - 1) * self::PAGE_SIZE + 1),
             'lastResult' => min($page * self::PAGE_SIZE, $totalUsers),
         ]);
+    }
+
+    /** @return array{string, string, string} */
+    private function readFilters(Request $request): array
+    {
+        $search = mb_substr(trim($request->query->getString('q')), 0, 100);
+        $role = $request->query->getString('role');
+        if (!in_array($role, ['user', 'staff', 'admin'], true)) {
+            $role = '';
+        }
+        $status = $request->query->getString('status');
+        if (!in_array($status, ['active', 'disabled'], true)) {
+            $status = '';
+        }
+
+        return [$search, $role, $status];
     }
 
     #[Route('/new', name: 'app_admin_user_new', methods: ['GET', 'POST'])]

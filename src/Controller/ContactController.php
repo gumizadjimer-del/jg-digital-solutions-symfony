@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Message;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,6 +33,11 @@ final class ContactController extends AbstractController
             $message->setEmail($email);
             $message->setMessage($messageText);
             $message->setCreatedAt(new \DateTimeImmutable());
+
+            $sender = $this->getUser();
+            if ($sender instanceof User) {
+                $message->setSubmittedBy($sender);
+            }
 
             $entityManager->persist($message);
             $entityManager->flush();

@@ -36,6 +36,24 @@ final class StaffRecordRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return array<string, int> */
+    public function countAllByStatus(): array
+    {
+        $rows = $this->createQueryBuilder('record')
+            ->select('record.status AS status')
+            ->addSelect('COUNT(record.id) AS recordCount')
+            ->groupBy('record.status')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = array_fill_keys(StaffRecord::STATUSES, 0);
+        foreach ($rows as $row) {
+            $counts[(string) $row['status']] = (int) $row['recordCount'];
+        }
+
+        return $counts;
+    }
+
     public function buildAdminSearchQuery(string $term, ?string $status): QueryBuilder
     {
         $query = $this->createQueryBuilder('record')

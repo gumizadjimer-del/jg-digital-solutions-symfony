@@ -106,6 +106,65 @@ final class AdminManagementTest extends WebTestCase
         }
     }
 
+    public function testAdminCanSearchAndPageContactMessagesAndKeepListContext(): void
+    {
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $admin = $this->makeUser('messageadmin', 'admin');
+        $entityManager->persist($admin);
+        $tag = 'messagepage_' . bin2hex(random_bytes(4));
+        $messages = [];
+
+        for ($index = 0; $index < 26; ++$index) {
+            $message = new Message();
+            $message->setName('Contact ' . $tag . ' ' . $index);
+            $message->setEmail($tag . '_' . $index . '@example.test');
+            $message->setMessage('Body ' . $tag . ' ' . $index);
+            $message->setCreatedAt(new \DateTimeImmutable());
+            $entityManager->persist($message);
+            $messages[] = $message;
+        }
+        $entityManager->flush();
+        $adminId = (int) $admin->getId();
+        $messageIds = array_map(static fn (Message $message): int => (int) $message->getId(), $messages);
+
+        try {
+            $client->loginUser($admin);
+            $crawler = $client->request('GET', '/admin/messages?' . http_build_query([
+                'q' => $tag,
+                'page' => 2,
+            ]));
+            self::assertResponseIsSuccessful();
+            self::assertSelectorTextContains('main', 'Showing 26 to 26 of 26 matching messages.');
+            self::assertSelectorTextContains('nav.pagination', 'Page 2 of 2');
+            self::assertStringContainsString('Body ' . $tag . ' 0', (string) $client->getResponse()->getContent());
+
+            $detailUrl = (string) $crawler->filter('.admin-table tbody a')->attr('href');
+            self::assertStringContainsString('q=' . $tag, $detailUrl);
+            self::assertStringContainsString('page=2', $detailUrl);
+            $detailCrawler = $client->request('GET', $detailUrl);
+            self::assertResponseIsSuccessful();
+            self::assertStringContainsString('q=' . $tag, (string) $detailCrawler->filter('.back-button')->attr('href'));
+            self::assertStringContainsString('page=2', (string) $detailCrawler->filter('.back-button')->attr('href'));
+
+            $deleteForm = $detailCrawler->selectButton('Delete message')->form();
+            $client->submit($deleteForm);
+            self::assertResponseRedirects('/admin/messages?q=' . $tag . '&page=2');
+        } finally {
+            foreach ($messageIds as $id) {
+                $message = $entityManager->getRepository(Message::class)->find($id);
+                if ($message instanceof Message) {
+                    $entityManager->remove($message);
+                }
+            }
+            $savedAdmin = $entityManager->getRepository(User::class)->find($adminId);
+            if ($savedAdmin instanceof User) {
+                $entityManager->remove($savedAdmin);
+            }
+            $entityManager->flush();
+        }
+    }
+
     private function makeUser(string $label, string $role): User
     {
         $suffix = bin2hex(random_bytes(5));

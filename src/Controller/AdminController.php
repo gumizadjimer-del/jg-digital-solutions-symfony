@@ -6,6 +6,9 @@ use App\Entity\User;
 use App\Entity\Message;
 use App\Entity\ServiceRequest;
 use App\Entity\StaffRecord;
+use App\Repository\MessageRepository;
+use App\Repository\ServiceRequestRepository;
+use App\Repository\StaffRecordRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,7 +19,12 @@ final class AdminController extends AbstractController
 {
     #[Route('/admin', name: 'app_admin_dashboard')]
     #[IsGranted('ROLE_ADMIN')]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(
+        EntityManagerInterface $entityManager,
+        MessageRepository $messageRepository,
+        ServiceRequestRepository $serviceRequestRepository,
+        StaffRecordRepository $staffRecordRepository
+    ): Response
     {
         $totalUsers = $entityManager
             ->getRepository(User::class)
@@ -42,6 +50,9 @@ final class AdminController extends AbstractController
             ->getRepository(ServiceRequest::class)
             ->count(['status' => 'Pending']);
 
+        $requestStatusCounts = $serviceRequestRepository->countAllByStatus();
+        $recordStatusCounts = $staffRecordRepository->countAllByStatus();
+
         return $this->render('admin/index.html.twig', [
             'totalUsers' => $totalUsers,
             'totalStaff' => $totalStaff,
@@ -49,6 +60,10 @@ final class AdminController extends AbstractController
             'totalMessages' => $totalMessages,
             'totalRequests' => $totalRequests,
             'pendingRequests' => $pendingRequests,
+            'requestStatusCounts' => $requestStatusCounts,
+            'recordStatusCounts' => $recordStatusCounts,
+            'recentRequests' => $serviceRequestRepository->findRecentForAdmin(),
+            'recentMessages' => $messageRepository->findRecent(),
         ]);
     }
 }

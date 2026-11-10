@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\CsvExporter;
 
 #[Route('/admin/service-requests')]
 #[IsGranted('ROLE_ADMIN')]
@@ -28,6 +29,37 @@ final class AdminServiceRequestController extends AbstractController
         'Approved' => ['Approved', 'In Progress', 'Completed', 'Cancelled'],
         'Rejected' => ['Rejected', 'Cancelled'],
     ];
+
+    #[Route('/export', name: 'app_admin_service_requests_export', methods: ['GET'])]
+    public function export(Request $request, ServiceRequestRepository $repository, CsvExporter $csvExporter): Response
+    {
+        $search = mb_substr(trim($request->query->getString('q')), 0, 100);
+        $status = $request->query->getString('status');
+        if (!in_array($status, self::FILTER_STATUSES, true)) {
+            $status = '';
+        }
+
+        $rows = $repository
+            ->buildAdminQueueQuery($search, $status !== '' ? $status : null)
+            ->getQuery()
+            ->toIterable();
+
+        return $csvExporter->createResponse(
+            'service-requests-' . date('Y-m-d') . '.csv',
+            ['ID', 'Customer', 'Customer email', 'Service', 'Description', 'Status', 'Admin note', 'Submitted at'],
+            $rows,
+            static fn (ServiceRequest $serviceRequest): array => [
+                $serviceRequest->getId(),
+                $serviceRequest->getUser()?->getUsername(),
+                $serviceRequest->getUser()?->getEmail(),
+                $serviceRequest->getService(),
+                $serviceRequest->getDescription(),
+                $serviceRequest->getStatus(),
+                $serviceRequest->getAdminNote(),
+                $serviceRequest->getCreatedAt()?->format(DATE_ATOM) ?? '',
+            ]
+        );
+    }
 
     #[Route('', name: 'app_admin_service_requests', methods: ['GET'])]
     public function index(Request $request, ServiceRequestRepository $repository): Response

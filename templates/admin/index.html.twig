@@ -101,7 +101,7 @@
                     {{ totalRequests }}
                 </div>
 
-                <p>Service requests submitted by users.</p>
+                <p>Service requests submitted by users. {{ pendingRequests }} currently pending.</p>
 
                 <a href="{{ path('app_admin_service_requests') }}" class="dashboard-button">
                     VIEW REQUESTS
@@ -110,6 +110,69 @@
             </div>
 
         </div>
+
+        <section class="dashboard-report-grid" aria-label="System activity summaries">
+            <article class="dashboard-card">
+                <h2>Requests by status</h2>
+                <ul class="dashboard-status-list">
+                    {% for status, count in requestStatusCounts %}
+                        <li><span>{{ status }}</span><strong>{{ count }}</strong></li>
+                    {% endfor %}
+                </ul>
+            </article>
+            <article class="dashboard-card">
+                <h2>Work records by status</h2>
+                <ul class="dashboard-status-list">
+                    {% for status, count in recordStatusCounts %}
+                        <li><span>{{ status }}</span><strong>{{ count }}</strong></li>
+                    {% endfor %}
+                </ul>
+            </article>
+        </section>
+
+        <section class="dashboard-report-grid" aria-label="Recent activity">
+            <article class="dashboard-card">
+                <h2>Recent service requests</h2>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead><tr><th scope="col">Customer</th><th scope="col">Service</th><th scope="col">Status</th><th scope="col">Submitted</th><th scope="col">Details</th></tr></thead>
+                        <tbody>
+                        {% for request in recentRequests %}
+                            <tr>
+                                <td>{{ request.user.username }}</td>
+                                <td>{{ request.service }}</td>
+                                <td>{{ request.status }}</td>
+                                <td>{{ request.createdAt|date('Y-m-d H:i') }}</td>
+                                <td><a class="edit-button" href="{{ path('app_admin_service_request_show', {id: request.id}) }}">VIEW</a></td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5">No service requests yet.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+            <article class="dashboard-card">
+                <h2>Recent contact messages</h2>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead><tr><th scope="col">From</th><th scope="col">Received</th><th scope="col">Message</th><th scope="col">Details</th></tr></thead>
+                        <tbody>
+                        {% for message in recentMessages %}
+                            <tr>
+                                <td>{{ message.name }}</td>
+                                <td>{{ message.createdAt|date('Y-m-d H:i') }}</td>
+                                <td>{{ message.message|slice(0, 80) }}{% if message.message|length > 80 %}...{% endif %}</td>
+                                <td><a class="edit-button" href="{{ path('app_admin_message_show', {id: message.id}) }}">VIEW</a></td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="4">No contact messages yet.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
 
     </main>
 

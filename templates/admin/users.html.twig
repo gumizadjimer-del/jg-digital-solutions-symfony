@@ -70,6 +70,8 @@
         <a class="back-button" href="{{ path('app_admin_users') }}">CLEAR</a>
     </form>
 
+    <p><a class="dashboard-button" href="{{ path('app_admin_users_export', {q: search, role: selectedRole, status: selectedStatus}) }}">DOWNLOAD FILTERED CSV</a></p>
+
     <p class="form-hint">Showing {{ firstResult }} to {{ lastResult }} of {{ totalUsers }} accounts.</p>
 
     <div class="table-container">

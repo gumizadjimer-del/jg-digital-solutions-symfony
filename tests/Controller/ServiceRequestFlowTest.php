@@ -53,6 +53,55 @@ final class ServiceRequestFlowTest extends WebTestCase
         }
     }
 
+    public function testDashboardSearchStatusSummaryAndPaginationStayWithinOwner(): void
+    {
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $owner = $this->makeUser('filterowner');
+        $other = $this->makeUser('filterother');
+        $tag = 'dashboard_' . bin2hex(random_bytes(4));
+        $requests = [];
+
+        for ($index = 0; $index < 26; ++$index) {
+            $requests[] = $this->makeRequest($owner, $tag . ' pending request ' . $index, 'Pending');
+        }
+        $requests[] = $this->makeRequest($owner, $tag . ' completed request', 'Completed');
+        $requests[] = $this->makeRequest($other, $tag . ' other account request', 'Pending');
+
+        $entityManager->persist($owner);
+        $entityManager->persist($other);
+        foreach ($requests as $serviceRequest) {
+            $entityManager->persist($serviceRequest);
+        }
+        $entityManager->flush();
+        $requestIds = array_map(static fn (ServiceRequest $serviceRequest): int => (int) $serviceRequest->getId(), $requests);
+        $userIds = [(int) $owner->getId(), (int) $other->getId()];
+
+        try {
+            $client->loginUser($owner);
+            $client->request('GET', '/dashboard?' . http_build_query([
+                'q' => $tag,
+                'status' => 'Pending',
+                'page' => 2,
+            ]));
+            self::assertResponseIsSuccessful();
+            self::assertSelectorTextContains('main', 'Showing 26 to 26 of 26 matching requests.');
+            self::assertSelectorTextContains('nav.request-pagination', 'Page 2 of 2');
+            self::assertStringNotContainsString($tag . ' other account request', (string) $client->getResponse()->getContent());
+
+            $client->request('GET', '/dashboard?' . http_build_query(['q' => $tag, 'status' => 'Completed']));
+            self::assertResponseIsSuccessful();
+            self::assertSelectorTextContains('.request-summary', 'Pending');
+            self::assertSelectorTextContains('.request-summary', '26');
+            self::assertSelectorTextContains('.request-summary', 'Completed');
+            self::assertSelectorTextContains('.request-summary', '1');
+            self::assertStringContainsString($tag . ' completed request', (string) $client->getResponse()->getContent());
+            self::assertStringNotContainsString($tag . ' other account request', (string) $client->getResponse()->getContent());
+        } finally {
+            $this->removeFixtures($requestIds, $userIds);
+        }
+    }
+
     private function makeUser(string $label): User
     {
         $suffix = bin2hex(random_bytes(5));

@@ -101,6 +101,63 @@
             padding: 25px;
             text-align: center;
         }
+
+        .request-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin: 0 0 28px;
+        }
+
+        .request-stat {
+            background: #231F20;
+            border: 1px solid #444444;
+            border-top: 3px solid #FAAF43;
+            border-radius: 5px;
+            padding: 14px;
+        }
+
+        .request-stat span,
+        .request-stat strong {
+            display: block;
+        }
+
+        .request-stat span { color: #dddddd; font-size: 0.9rem; }
+        .request-stat strong { color: #FAAF43; font-size: 1.5rem; margin-top: 6px; }
+
+        .request-filter-form {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) minmax(160px, 0.5fr) auto auto;
+            align-items: end;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .request-filter-form label { display: block; margin-bottom: 6px; }
+        .request-filter-form input,
+        .request-filter-form select { width: 100%; box-sizing: border-box; padding: 10px; }
+        .request-filter-form button,
+        .request-filter-form a { padding: 11px 15px; border: 0; border-radius: 4px; font: inherit; font-weight: bold; }
+        .request-filter-form button { background: #FAAF43; color: #000000; cursor: pointer; }
+        .request-filter-form a { background: #444444; color: #FFFFFF; text-decoration: none; }
+
+        .request-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .request-pagination a { color: #FAAF43; }
+
+        @media (max-width: 700px) {
+            header { padding: 18px 20px; align-items: flex-start; gap: 14px; flex-direction: column; }
+            header nav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+            header a { margin-left: 0; }
+            .request-header { align-items: flex-start; flex-direction: column; gap: 12px; }
+            .request-filter-form { grid-template-columns: 1fr; }
+        }
     .logout-link { background: transparent; border: 0; color: #FFFFFF; font: inherit; cursor: pointer; }
         .logout-link:hover { color: #FAAF43; }
     </style>
@@ -126,6 +183,13 @@
         <p>View the status of your service requests below.</p>
     </section>
 
+    <section class="request-summary" aria-label="Service request totals">
+        {% for status, count in requestStatusCounts %}
+            <div class="request-stat"><span>{{ status }}</span><strong>{{ count }}</strong></div>
+        {% endfor %}
+        <div class="request-stat"><span>All Requests</span><strong>{{ allRequestCount }}</strong></div>
+    </section>
+
     {% for message in app.flashes('success') %}<div class="form-success">{{ message }}</div>{% endfor %}
 
     <section>
@@ -137,10 +201,31 @@
             </a>
         </div>
 
+        <form class="request-filter-form" method="get" action="{{ path('app_dashboard') }}">
+            <div>
+                <label for="q">Search service or description</label>
+                <input id="q" name="q" type="search" maxlength="100" value="{{ search }}">
+            </div>
+            <div>
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    <option value="">All statuses</option>
+                    {% for status in statuses %}
+                        <option value="{{ status }}" {{ selectedStatus == status ? 'selected' : '' }}>{{ status }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit">SEARCH</button>
+            <a href="{{ path('app_dashboard') }}">CLEAR</a>
+        </form>
+        <p><a class="new-request" href="{{ path('app_dashboard_export', {q: search, status: selectedStatus}) }}">DOWNLOAD MY FILTERED CSV</a></p>
+        <p class="form-hint">Showing {{ firstResult }} to {{ lastResult }} of {{ totalRequests }} matching requests.</p>
+
         {% if serviceRequests is empty %}
 
             <div class="empty">
-                <p>You currently have no service requests.</p>
+                <p>No service requests match these filters.</p>
+                <a class="new-request" href="{{ path('app_service_request_new') }}">Create a service request</a>
             </div>
 
         {% else %}
@@ -178,6 +263,18 @@
 
             {% endfor %}
 
+        {% endif %}
+
+        {% if totalPages > 1 %}
+            <nav class="request-pagination" aria-label="Service request pages">
+                {% if page > 1 %}
+                    <a href="{{ path('app_dashboard', {q: search, status: selectedStatus, page: page - 1}) }}">Previous</a>
+                {% endif %}
+                <span>Page {{ page }} of {{ totalPages }}</span>
+                {% if page < totalPages %}
+                    <a href="{{ path('app_dashboard', {q: search, status: selectedStatus, page: page + 1}) }}">Next</a>
+                {% endif %}
+            </nav>
         {% endif %}
 
     </section>

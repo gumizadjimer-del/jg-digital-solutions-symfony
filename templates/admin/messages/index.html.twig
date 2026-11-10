@@ -1,2 +1,51 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Contact Messages</title><link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}"></head><body class="admin-page"><header class="admin-header"><div class="admin-header-content"><strong class="admin-logo">JG Digital Solutions</strong><nav class="admin-nav"><a href="{{ path('app_admin_dashboard') }}">Dashboard</a><a href="{{ path('app_admin_users') }}">Users</a><a href="{{ path('app_admin_records') }}">Records</a><a href="{{ path('app_admin_service_requests') }}">Service Requests</a><a href="{{ path('app_admin_messages') }}">Messages</a><a href="{{ path('app_profile') }}">My Profile</a><form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form></nav></div></header>
-<main class="admin-container"><h1>Contact Messages</h1>{% for message in app.flashes('success') %}<div class="form-success">{{ message }}</div>{% endfor %}<div class="table-container"><table class="admin-table"><thead><tr><th>From</th><th>Email</th><th>Received</th><th>Message</th><th></th></tr></thead><tbody>{% for item in messages %}<tr><td>{{ item.name }}</td><td>{{ item.email }}</td><td>{{ item.createdAt|date('Y-m-d H:i') }}</td><td>{{ item.message|slice(0, 100) }}</td><td><a class="edit-button" href="{{ path('app_admin_message_show', {id: item.id}) }}">VIEW</a></td></tr>{% else %}<tr><td colspan="5">No messages.</td></tr>{% endfor %}</tbody></table></div></main></body></html>
+<main class="admin-container">
+    <div class="admin-heading">
+        <h1>Contact Messages</h1>
+        <p>Search messages by sender, email, or message text.</p>
+    </div>
+    {% for message in app.flashes('success') %}<div class="form-success" role="status">{{ message }}</div>{% endfor %}
+    <form class="record-filter-form" method="get" action="{{ path('app_admin_messages') }}">
+        <div class="form-group">
+            <label for="q">Search contact messages</label>
+            <input id="q" name="q" type="search" maxlength="100" value="{{ search }}">
+        </div>
+        <button class="auth-button" type="submit">SEARCH</button>
+        <a class="back-button" href="{{ path('app_admin_messages') }}">CLEAR</a>
+    </form>
+    <p><a class="dashboard-button" href="{{ path('app_admin_messages_export', {q: search}) }}">DOWNLOAD FILTERED CSV</a></p>
+    <p class="form-hint">Showing {{ firstResult }} to {{ lastResult }} of {{ totalMessages }} matching messages.</p>
+    <div class="table-container">
+        <table class="admin-table">
+            <caption class="table-caption">Contact messages</caption>
+            <thead><tr><th scope="col">From</th><th scope="col">Email</th><th scope="col">Account</th><th scope="col">Received</th><th scope="col">Message</th><th scope="col">Actions</th></tr></thead>
+            <tbody>
+            {% for item in messages %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.email }}</td>
+                    <td>{% if item.submittedBy %}<a href="{{ path('app_admin_user_edit', {id: item.submittedBy.id}) }}">{{ item.submittedBy.username }}</a>{% else %}Unlinked{% endif %}</td>
+                    <td>{{ item.createdAt|date('Y-m-d H:i') }}</td>
+                    <td>{{ item.message|slice(0, 100) }}{% if item.message|length > 100 %}...{% endif %}</td>
+                    <td><a class="edit-button" href="{{ path('app_admin_message_show', {id: item.id, q: search, page: page}) }}">VIEW</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">No messages match your search. <a href="{{ path('app_admin_messages') }}">Clear the search</a>.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if totalPages > 1 %}
+        <nav class="pagination" aria-label="Contact message pages">
+            {% if page > 1 %}
+                <a href="{{ path('app_admin_messages', {q: search, page: page - 1}) }}">Previous</a>
+            {% endif %}
+            <span>Page {{ page }} of {{ totalPages }}</span>
+            {% if page < totalPages %}
+                <a href="{{ path('app_admin_messages', {q: search, page: page + 1}) }}">Next</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</main>
+</body>
+</html>

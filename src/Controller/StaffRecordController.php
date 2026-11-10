@@ -12,12 +12,43 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\CsvExporter;
 
 #[Route('/staff/records')]
 #[IsGranted('ROLE_STAFF')]
 final class StaffRecordController extends AbstractController
 {
     private const PAGE_SIZE = 25;
+
+    #[Route('/export', name: 'app_staff_records_export', methods: ['GET'])]
+    public function export(Request $request, StaffRecordRepository $recordRepository, CsvExporter $csvExporter): Response
+    {
+        $user = $this->getStaffUser();
+        $search = mb_substr(trim($request->query->getString('q')), 0, 100);
+        $status = $request->query->getString('status');
+        if (!in_array($status, StaffRecord::STATUSES, true)) {
+            $status = '';
+        }
+
+        $rows = $recordRepository
+            ->buildOwnedSearchQuery($user, $search, $status !== '' ? $status : null)
+            ->getQuery()
+            ->toIterable();
+
+        return $csvExporter->createResponse(
+            'my-work-records-' . date('Y-m-d') . '.csv',
+            ['ID', 'Title', 'Description', 'Status', 'Created at', 'Updated at'],
+            $rows,
+            static fn (StaffRecord $record): array => [
+                $record->getId(),
+                $record->getTitle(),
+                $record->getDescription(),
+                $record->getStatus(),
+                $record->getCreatedAt()?->format(DATE_ATOM) ?? '',
+                $record->getUpdatedAt()?->format(DATE_ATOM) ?? '',
+            ]
+        );
+    }
 
     #[Route('', name: 'app_staff_records', methods: ['GET'])]
     public function index(Request $request, StaffRecordRepository $recordRepository): Response

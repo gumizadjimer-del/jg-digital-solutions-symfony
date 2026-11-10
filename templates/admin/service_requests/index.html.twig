@@ -47,6 +47,7 @@
         <button class="auth-button" type="submit">SEARCH</button>
         <a class="back-button" href="{{ path('app_admin_service_requests') }}">CLEAR</a>
     </form>
+    <p><a class="dashboard-button" href="{{ path('app_admin_service_requests_export', {q: search, status: selectedStatus}) }}">DOWNLOAD FILTERED CSV</a></p>
     <p class="form-hint">Showing {{ firstResult }} to {{ lastResult }} of {{ totalRequests }} requests.</p>
     <div class="table-container">
         <table class="admin-table">
