@@ -6,6 +6,7 @@ use App\Entity\StaffRecord;
 use App\Entity\User;
 use App\Repository\StaffRecordRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +17,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class AdminRecordController extends AbstractController
 {
+    private const PAGE_SIZE = 25;
+
     #[Route('', name: 'app_admin_records', methods: ['GET'])]
     public function index(Request $request, StaffRecordRepository $recordRepository): Response
     {
@@ -25,11 +28,26 @@ final class AdminRecordController extends AbstractController
             $status = '';
         }
 
+        $paginator = new Paginator(
+            $recordRepository->buildAdminSearchQuery($search, $status !== '' ? $status : null)->getQuery(),
+            false
+        );
+        $totalRecords = count($paginator);
+        $totalPages = max(1, (int) ceil($totalRecords / self::PAGE_SIZE));
+        $page = min(max(1, $request->query->getInt('page', 1)), $totalPages);
+        $paginator->getQuery()
+            ->setFirstResult(($page - 1) * self::PAGE_SIZE)
+            ->setMaxResults(self::PAGE_SIZE);
+
         return $this->render('admin/records/index.html.twig', [
-            'records' => $recordRepository->searchAll($search, $status !== '' ? $status : null),
+            'records' => $paginator,
             'search' => $search,
             'selectedStatus' => $status,
             'statuses' => StaffRecord::STATUSES,
+            'totalRecords' => $totalRecords,
+            'pageResults' => min(self::PAGE_SIZE, max(0, $totalRecords - (($page - 1) * self::PAGE_SIZE))),
+            'page' => $page,
+            'totalPages' => $totalPages,
         ]);
     }
 

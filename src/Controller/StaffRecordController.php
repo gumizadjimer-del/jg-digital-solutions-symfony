@@ -6,6 +6,7 @@ use App\Entity\StaffRecord;
 use App\Entity\User;
 use App\Repository\StaffRecordRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,16 +17,39 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_STAFF')]
 final class StaffRecordController extends AbstractController
 {
+    private const PAGE_SIZE = 25;
+
     #[Route('', name: 'app_staff_records', methods: ['GET'])]
-    public function index(StaffRecordRepository $recordRepository): Response
+    public function index(Request $request, StaffRecordRepository $recordRepository): Response
     {
         $user = $this->getStaffUser();
+        $search = mb_substr(trim($request->query->getString('q')), 0, 100);
+        $status = $request->query->getString('status');
+        if (!in_array($status, StaffRecord::STATUSES, true)) {
+            $status = '';
+        }
+
+        $paginator = new Paginator(
+            $recordRepository->buildOwnedSearchQuery($user, $search, $status !== '' ? $status : null)->getQuery(),
+            false
+        );
+        $totalRecords = count($paginator);
+        $totalPages = max(1, (int) ceil($totalRecords / self::PAGE_SIZE));
+        $page = min(max(1, $request->query->getInt('page', 1)), $totalPages);
+        $paginator->getQuery()
+            ->setFirstResult(($page - 1) * self::PAGE_SIZE)
+            ->setMaxResults(self::PAGE_SIZE);
 
         return $this->render('staff/records/index.html.twig', [
-            'records' => $recordRepository->findBy(
-                ['createdBy' => $user],
-                ['updatedAt' => 'DESC', 'id' => 'DESC']
-            ),
+            'records' => $paginator,
+            'search' => $search,
+            'selectedStatus' => $status,
+            'statuses' => StaffRecord::STATUSES,
+            'totalRecords' => $totalRecords,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'firstResult' => $totalRecords === 0 ? 0 : (($page - 1) * self::PAGE_SIZE + 1),
+            'lastResult' => min($page * self::PAGE_SIZE, $totalRecords),
         ]);
     }
 

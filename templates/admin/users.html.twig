@@ -44,6 +44,34 @@
         <div class="form-error">{{ message }}</div>
     {% endfor %}
 
+    <form class="user-filter-form" method="get" action="{{ path('app_admin_users') }}">
+        <div class="form-group">
+            <label for="q">Search username or email</label>
+            <input id="q" name="q" type="search" maxlength="100" value="{{ search }}">
+        </div>
+        <div class="form-group">
+            <label for="role">Role</label>
+            <select id="role" name="role">
+                <option value="">All roles</option>
+                <option value="user" {{ selectedRole == 'user' ? 'selected' : '' }}>User</option>
+                <option value="staff" {{ selectedRole == 'staff' ? 'selected' : '' }}>Staff</option>
+                <option value="admin" {{ selectedRole == 'admin' ? 'selected' : '' }}>Admin</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="status">Account status</label>
+            <select id="status" name="status">
+                <option value="">All statuses</option>
+                <option value="active" {{ selectedStatus == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="disabled" {{ selectedStatus == 'disabled' ? 'selected' : '' }}>Disabled</option>
+            </select>
+        </div>
+        <button class="auth-button" type="submit">SEARCH</button>
+        <a class="back-button" href="{{ path('app_admin_users') }}">CLEAR</a>
+    </form>
+
+    <p class="form-hint">Showing {{ firstResult }} to {{ lastResult }} of {{ totalUsers }} accounts.</p>
+
     <div class="table-container">
         <table class="admin-table">
             <thead>
@@ -110,6 +138,18 @@
             </tbody>
         </table>
     </div>
+
+    {% if totalPages > 1 %}
+        <nav class="pagination" aria-label="User list pages">
+            {% if page > 1 %}
+                <a href="{{ path('app_admin_users', {q: search, role: selectedRole, status: selectedStatus, page: page - 1}) }}">Previous</a>
+            {% endif %}
+            <span>Page {{ page }} of {{ totalPages }}</span>
+            {% if page < totalPages %}
+                <a href="{{ path('app_admin_users', {q: search, role: selectedRole, status: selectedStatus, page: page + 1}) }}">Next</a>
+            {% endif %}
+        </nav>
+    {% endif %}
 
     <a href="{{ path('app_admin_dashboard') }}" class="back-button">
         Back to Dashboard

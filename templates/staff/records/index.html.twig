@@ -21,12 +21,19 @@
 <main class="admin-container">
     <div class="admin-heading"><h1>My Work Records</h1><p>Only records created by your account appear here.</p><a class="auth-button" href="{{ path('app_staff_record_new') }}">CREATE RECORD</a></div>
     {% for message in app.flashes('success') %}<div class="form-success" role="status">{{ message }}</div>{% endfor %}
+    <form class="record-filter-form" method="get" action="{{ path('app_staff_records') }}">
+        <div class="form-group"><label for="q">Search title or description</label><input id="q" name="q" type="search" maxlength="100" value="{{ search }}"></div>
+        <div class="form-group"><label for="status">Status</label><select id="status" name="status"><option value="">All statuses</option>{% for status in statuses %}<option value="{{ status }}" {{ selectedStatus == status ? 'selected' : '' }}>{{ status }}</option>{% endfor %}</select></div>
+        <button class="auth-button" type="submit">SEARCH</button>
+        <a class="back-button" href="{{ path('app_staff_records') }}">CLEAR</a>
+    </form>
+    <p class="form-hint">Showing {{ firstResult }} to {{ lastResult }} of {{ totalRecords }} matching records.</p>
     <div class="table-container"><table class="admin-table">
         <thead><tr><th>Title</th><th>Description</th><th>Status</th><th>Created</th><th>Updated</th><th>Actions</th></tr></thead>
         <tbody>
         {% for record in records %}
             <tr>
-                <td>{{ record.title }}</td><td>{{ record.description|slice(0, 120) }}{% if record.description|length > 120 %}…{% endif %}</td>
+                <td>{{ record.title }}</td><td>{{ record.description|slice(0, 120) }}{% if record.description|length > 120 %}...{% endif %}</td>
                 <td>{{ record.status }}</td><td>{{ record.createdAt|date('Y-m-d') }}</td><td>{{ record.updatedAt|date('Y-m-d H:i') }}</td>
                 <td class="action-buttons"><a class="edit-button" href="{{ path('app_staff_record_show', {id: record.id}) }}">VIEW</a><a class="edit-button" href="{{ path('app_staff_record_edit', {id: record.id}) }}">EDIT</a></td>
             </tr>
@@ -35,6 +42,17 @@
         {% endfor %}
         </tbody>
     </table></div>
+    {% if totalPages > 1 %}
+        <nav class="pagination" aria-label="My work record pages">
+            {% if page > 1 %}
+                <a href="{{ path('app_staff_records', {q: search, status: selectedStatus, page: page - 1}) }}">Previous</a>
+            {% endif %}
+            <span>Page {{ page }} of {{ totalPages }}</span>
+            {% if page < totalPages %}
+                <a href="{{ path('app_staff_records', {q: search, status: selectedStatus, page: page + 1}) }}">Next</a>
+            {% endif %}
+        </nav>
+    {% endif %}
 </main>
 </body>
 </html>

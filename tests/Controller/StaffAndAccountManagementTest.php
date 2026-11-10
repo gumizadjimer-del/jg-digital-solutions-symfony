@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Entity\StaffRecord;
+use App\Entity\ServiceRequest;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -18,10 +19,19 @@ final class StaffAndAccountManagementTest extends WebTestCase
     /** @var list<int> */
     private array $recordIds = [];
 
+    /** @var list<int> */
+    private array $serviceRequestIds = [];
+
     protected function tearDown(): void
     {
         if (static::$kernel !== null) {
             $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+            foreach ($this->serviceRequestIds as $id) {
+                $serviceRequest = $entityManager->getRepository(ServiceRequest::class)->find($id);
+                if ($serviceRequest instanceof ServiceRequest) {
+                    $entityManager->remove($serviceRequest);
+                }
+            }
             foreach ($this->recordIds as $id) {
                 $record = $entityManager->getRepository(StaffRecord::class)->find($id);
                 if ($record instanceof StaffRecord) {
@@ -204,6 +214,161 @@ final class StaffAndAccountManagementTest extends WebTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
+    public function testAdminUserListSearchRoleStatusFiltersAndPagination(): void
+    {
+        $client = static::createClient();
+        $admin = $this->persistUser('listadmin', 'admin');
+        $client->loginUser($admin);
+
+        $tag = 'userlist_' . bin2hex(random_bytes(4));
+        for ($index = 0; $index < 26; ++$index) {
+            $this->persistUser($tag . '_staff', 'staff');
+        }
+        $disabledStaff = $this->persistUser($tag . '_disabled', 'staff', false);
+        $regularUser = $this->persistUser($tag . '_regular', 'user');
+
+        $client->request('GET', '/admin/users?' . http_build_query([
+            'q' => $tag,
+            'role' => 'staff',
+            'status' => 'active',
+            'page' => 2,
+        ]));
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main', 'Showing 26 to 26 of 26 accounts.');
+        self::assertSelectorTextContains('nav.pagination', 'Page 2 of 2');
+        self::assertSelectorExists('nav.pagination a[href*="page=1"]');
+
+        $client->request('GET', '/admin/users?' . http_build_query([
+            'q' => $tag,
+            'role' => 'staff',
+            'status' => 'disabled',
+        ]));
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString((string) $disabledStaff->getUsername(), (string) $client->getResponse()->getContent());
+        self::assertStringNotContainsString((string) $regularUser->getUsername(), (string) $client->getResponse()->getContent());
+
+        $client->request('GET', '/admin/users?' . http_build_query([
+            'q' => $tag,
+            'role' => 'user',
+            'status' => 'active',
+        ]));
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString((string) $regularUser->getUsername(), (string) $client->getResponse()->getContent());
+        self::assertStringNotContainsString((string) $disabledStaff->getUsername(), (string) $client->getResponse()->getContent());
+    }
+
+    public function testStaffRecordSearchStatusFilterOwnershipAndPagination(): void
+    {
+        $client = static::createClient();
+        $owner = $this->persistUser('recordfilter', 'staff');
+        $otherStaff = $this->persistUser('otherfilter', 'staff');
+        $client->loginUser($owner);
+
+        $tag = 'staffrecord_' . bin2hex(random_bytes(4));
+        for ($index = 0; $index < 26; ++$index) {
+            $this->persistRecord($owner, $tag . '_completed_' . $index, 'Completed');
+        }
+        $this->persistRecord($owner, $tag . '_progress', 'In Progress');
+        $foreignRecord = $this->persistRecord($otherStaff, $tag . '_foreign', 'Completed');
+
+        $client->request('GET', '/staff/records?' . http_build_query([
+            'q' => $tag,
+            'status' => 'Completed',
+            'page' => 2,
+        ]));
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main', 'Showing 26 to 26 of 26 matching records.');
+        self::assertSelectorTextContains('nav.pagination', 'Page 2 of 2');
+        self::assertStringNotContainsString((string) $foreignRecord->getTitle(), (string) $client->getResponse()->getContent());
+
+        $client->request('GET', '/staff/records?' . http_build_query(['q' => $tag, 'status' => 'In Progress']));
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main', 'Showing 1 to 1 of 1 matching records.');
+        self::assertStringContainsString($tag . '_progress', (string) $client->getResponse()->getContent());
+    }
+
+    public function testAdminRecordPaginationIncludesRecordsBeyondOneHundred(): void
+    {
+        $client = static::createClient();
+        $admin = $this->persistUser('recordpageadmin', 'admin');
+        $client->loginUser($admin);
+        $tag = 'adminrecord_' . bin2hex(random_bytes(4));
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $now = new \DateTimeImmutable();
+        $records = [];
+
+        for ($index = 0; $index < 101; ++$index) {
+            $record = (new StaffRecord())
+                ->setTitle($tag . '_' . $index)
+                ->setDescription('Created for an isolated pagination test.')
+                ->setStatus('Completed')
+                ->setCreatedAt($now)
+                ->setUpdatedAt($now)
+                ->setCreatedBy($admin);
+            $entityManager->persist($record);
+            $records[] = $record;
+        }
+        $entityManager->flush();
+        foreach ($records as $record) {
+            $this->recordIds[] = (int) $record->getId();
+        }
+
+        $client->request('GET', '/admin/records?' . http_build_query([
+            'q' => $tag,
+            'status' => 'Completed',
+            'page' => 5,
+        ]));
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main', 'Showing 1 of 101 matching records.');
+        self::assertSelectorTextContains('nav.pagination', 'Page 5 of 5');
+        self::assertStringContainsString($tag . '_0', (string) $client->getResponse()->getContent());
+    }
+
+    public function testAdminServiceRequestQueueSearchStatusFilterAndPagination(): void
+    {
+        $client = static::createClient();
+        $admin = $this->persistUser('requestadmin', 'admin');
+        $requester = $this->persistUser('requester', 'user');
+        $client->loginUser($admin);
+        $tag = 'requestqueue_' . bin2hex(random_bytes(4));
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $now = new \DateTimeImmutable();
+        $requests = [];
+
+        for ($index = 0; $index < 26; ++$index) {
+            $serviceRequest = (new ServiceRequest())
+                ->setService($tag . '_service_' . $index)
+                ->setDescription('Queued request for pagination coverage.')
+                ->setStatus('Pending')
+                ->setCreatedAt($now)
+                ->setUser($requester);
+            $entityManager->persist($serviceRequest);
+            $requests[] = $serviceRequest;
+        }
+        $completedRequest = (new ServiceRequest())
+            ->setService($tag . '_completed')
+            ->setDescription('Completed request excluded by the selected status.')
+            ->setStatus('Completed')
+            ->setCreatedAt($now)
+            ->setUser($requester);
+        $entityManager->persist($completedRequest);
+        $requests[] = $completedRequest;
+        $entityManager->flush();
+        foreach ($requests as $request) {
+            $this->serviceRequestIds[] = (int) $request->getId();
+        }
+
+        $client->request('GET', '/admin/service-requests?' . http_build_query([
+            'q' => $tag,
+            'status' => 'Pending',
+            'page' => 2,
+        ]));
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main', 'Showing 26 to 26 of 26 requests.');
+        self::assertSelectorTextContains('nav.pagination', 'Page 2 of 2');
+        self::assertStringNotContainsString($tag . '_completed', (string) $client->getResponse()->getContent());
+    }
+
     public function testAdminCanSearchCreateEditAndDeleteAnyStaffRecord(): void
     {
         $client = static::createClient();
@@ -332,13 +497,13 @@ final class StaffAndAccountManagementTest extends WebTestCase
         return $user;
     }
 
-    private function persistRecord(User $owner, string $title): StaffRecord
+    private function persistRecord(User $owner, string $title, string $status = 'In Progress'): StaffRecord
     {
         $now = new \DateTimeImmutable();
         $record = (new StaffRecord())
             ->setTitle($title)
             ->setDescription('Private record for ownership access testing.')
-            ->setStatus('In Progress')
+            ->setStatus($status)
             ->setCreatedAt($now)
             ->setUpdatedAt($now)
             ->setCreatedBy($owner);

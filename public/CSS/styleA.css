@@ -811,8 +811,20 @@
     margin-bottom: 0;
 }
 
+.user-filter-form {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(150px, 0.6fr)) auto auto;
+    align-items: end;
+    gap: 14px;
+    margin: 0 0 24px;
+}
+
+.user-filter-form .form-group {
+    margin: 0;
+}
+
 .form-hint {
-    color: #777;
+    color: #aaaaaa;
     font-size: 0.92rem;
 }
 
@@ -820,8 +832,37 @@
     display: inline-block;
 }
 
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 24px 0;
+    color: #FFFFFF;
+}
+
+.pagination a {
+    display: inline-block;
+    padding: 9px 14px;
+    border: 1px solid #FAAF43;
+    border-radius: 4px;
+    color: #FAAF43;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.pagination a:hover,
+.pagination a:focus-visible {
+    background: #FAAF43;
+    color: #231F20;
+}
+
 @media (max-width: 700px) {
     .record-filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .user-filter-form {
         grid-template-columns: 1fr;
     }
 

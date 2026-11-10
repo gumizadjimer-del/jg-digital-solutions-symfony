@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,13 +17,39 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 #[IsGranted('ROLE_ADMIN')]
 final class AdminUserController extends AbstractController
 {
+    private const PAGE_SIZE = 25;
+
     #[Route('', name: 'app_admin_users', methods: ['GET'])]
-    public function index(UserRepository $userRepository): Response
+    public function index(Request $request, UserRepository $userRepository): Response
     {
-        $users = $userRepository->findBy([], ['id' => 'DESC']);
+        $search = mb_substr(trim($request->query->getString('q')), 0, 100);
+        $role = $request->query->getString('role');
+        if (!in_array($role, ['user', 'staff', 'admin'], true)) {
+            $role = '';
+        }
+        $status = $request->query->getString('status');
+        if (!in_array($status, ['active', 'disabled'], true)) {
+            $status = '';
+        }
+
+        $paginator = new Paginator($userRepository->buildAdminListQuery($search, $role, $status)->getQuery(), false);
+        $totalUsers = count($paginator);
+        $totalPages = max(1, (int) ceil($totalUsers / self::PAGE_SIZE));
+        $page = min(max(1, $request->query->getInt('page', 1)), $totalPages);
+        $paginator->getQuery()
+            ->setFirstResult(($page - 1) * self::PAGE_SIZE)
+            ->setMaxResults(self::PAGE_SIZE);
 
         return $this->render('admin/users.html.twig', [
-            'users' => $users,
+            'users' => $paginator,
+            'search' => $search,
+            'selectedRole' => $role,
+            'selectedStatus' => $status,
+            'totalUsers' => $totalUsers,
+            'page' => $page,
+            'totalPages' => $totalPages,
+            'firstResult' => $totalUsers === 0 ? 0 : (($page - 1) * self::PAGE_SIZE + 1),
+            'lastResult' => min($page * self::PAGE_SIZE, $totalUsers),
         ]);
     }
 
@@ -142,6 +169,13 @@ final class AdminUserController extends AbstractController
                     ($role !== 'admin' || $isActive !== '1')
                 ) {
                     $error = 'You cannot remove your own admin role or disable your account.';
+                } elseif (
+                    $user->getRole() === 'admin' &&
+                    $user->isActive() &&
+                    ($role !== 'admin' || $isActive !== '1') &&
+                    $userRepository->countActiveAdmins() <= 1
+                ) {
+                    $error = 'You cannot disable or demote the last active admin account.';
                 } else {
                     $existingUsername = $userRepository->findOneBy([
                         'username' => $username,
@@ -189,6 +223,7 @@ final class AdminUserController extends AbstractController
     public function delete(
         User $user,
         Request $request,
+        UserRepository $userRepository,
         EntityManagerInterface $entityManager
     ): Response {
         /** @var User|null $currentUser */
@@ -204,6 +239,16 @@ final class AdminUserController extends AbstractController
 
         if ($user->getId() === $currentUser?->getId()) {
             $this->addFlash('error', 'You cannot delete your own account.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        if (
+            $user->getRole() === 'admin' &&
+            $user->isActive() &&
+            $userRepository->countActiveAdmins() <= 1
+        ) {
+            $this->addFlash('error', 'You cannot delete the last active admin account.');
 
             return $this->redirectToRoute('app_admin_users');
         }

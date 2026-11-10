@@ -28,12 +28,13 @@
         <button class="auth-button" type="submit">SEARCH</button>
         <a class="back-button" href="{{ path('app_admin_records') }}">CLEAR</a>
     </form>
+    <p class="form-hint">Showing {{ pageResults }} of {{ totalRecords }} matching records.</p>
     <div class="table-container"><table class="admin-table">
         <thead><tr><th>Title</th><th>Description</th><th>Created by</th><th>Status</th><th>Created</th><th>Updated</th><th>Actions</th></tr></thead>
         <tbody>
         {% for record in records %}
             <tr>
-                <td>{{ record.title }}</td><td>{{ record.description|slice(0, 100) }}{% if record.description|length > 100 %}…{% endif %}</td>
+                <td>{{ record.title }}</td><td>{{ record.description|slice(0, 100) }}{% if record.description|length > 100 %}...{% endif %}</td>
                 <td>{{ record.createdBy.username }} ({{ record.createdBy.role }})</td><td>{{ record.status }}</td>
                 <td>{{ record.createdAt|date('Y-m-d') }}</td><td>{{ record.updatedAt|date('Y-m-d H:i') }}</td>
                 <td class="action-buttons">
@@ -49,7 +50,17 @@
         {% endfor %}
         </tbody>
     </table></div>
-    <p class="form-hint">Showing up to 100 matching records. Refine the search to find older items.</p>
+    {% if totalPages > 1 %}
+        <nav class="pagination" aria-label="Work record pages">
+            {% if page > 1 %}
+                <a href="{{ path('app_admin_records', {q: search, status: selectedStatus, page: page - 1}) }}">Previous</a>
+            {% endif %}
+            <span>Page {{ page }} of {{ totalPages }}</span>
+            {% if page < totalPages %}
+                <a href="{{ path('app_admin_records', {q: search, status: selectedStatus, page: page + 1}) }}">Next</a>
+            {% endif %}
+        </nav>
+    {% endif %}
 </main>
 </body>
 </html>

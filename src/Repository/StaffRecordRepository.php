@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\StaffRecord;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -35,17 +36,14 @@ final class StaffRecordRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /** @return list<StaffRecord> */
-    public function searchAll(?string $term, ?string $status, int $limit = 100): array
+    public function buildAdminSearchQuery(string $term, ?string $status): QueryBuilder
     {
         $query = $this->createQueryBuilder('record')
             ->leftJoin('record.createdBy', 'owner')
             ->addSelect('owner')
             ->orderBy('record.updatedAt', 'DESC')
-            ->addOrderBy('record.id', 'DESC')
-            ->setMaxResults(max(1, min(250, $limit)));
+            ->addOrderBy('record.id', 'DESC');
 
-        $term = trim((string) $term);
         if ($term !== '') {
             $query
                 ->andWhere('LOWER(record.title) LIKE :term OR LOWER(record.description) LIKE :term OR LOWER(owner.username) LIKE :term OR LOWER(owner.email) LIKE :term')
@@ -56,6 +54,27 @@ final class StaffRecordRepository extends ServiceEntityRepository
             $query->andWhere('record.status = :status')->setParameter('status', $status);
         }
 
-        return $query->getQuery()->getResult();
+        return $query;
+    }
+
+    public function buildOwnedSearchQuery(User $user, string $term, ?string $status): QueryBuilder
+    {
+        $query = $this->createQueryBuilder('record')
+            ->andWhere('record.createdBy = :owner')
+            ->setParameter('owner', $user)
+            ->orderBy('record.updatedAt', 'DESC')
+            ->addOrderBy('record.id', 'DESC');
+
+        if ($term !== '') {
+            $query
+                ->andWhere('LOWER(record.title) LIKE :term OR LOWER(record.description) LIKE :term')
+                ->setParameter('term', '%' . mb_strtolower($term) . '%');
+        }
+
+        if ($status !== null && in_array($status, StaffRecord::STATUSES, true)) {
+            $query->andWhere('record.status = :status')->setParameter('status', $status);
+        }
+
+        return $query;
     }
 }
