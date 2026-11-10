@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users | JG Digital Solutions</title>
+    <link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}">
+</head>
+
+<body class="admin-page">
+
+<header class="admin-header">
+    <div class="admin-header-content">
+
+        <strong class="admin-logo">JG Digital Solutions</strong>
+
+        <nav class="admin-nav">
+            <a href="{{ path('app_admin_dashboard') }}">Dashboard</a>
+            <a href="{{ path('app_admin_users') }}">Users</a>
+            <a href="{{ path('app_admin_records') }}">Records</a>
+            <a href="{{ path('app_admin_messages') }}">Messages</a>
+            <a href="{{ path('app_admin_service_requests') }}">Service Requests</a>
+            <a href="{{ path('app_profile') }}">My Profile</a>
+            <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
+        </nav>
+
+    </div>
+</header>
+
+<main class="admin-container">
+
+    <div class="admin-heading">
+        <h1>Manage Users</h1>
+        <p>View and manage registered users.</p>
+        <a href="{{ path('app_admin_user_new') }}" class="auth-button">CREATE ACCOUNT</a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="form-success">{{ message }}</div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="form-error">{{ message }}</div>
+    {% endfor %}
+
+    <div class="table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+
+                        <td>
+                            <span class="role-badge {{ user.role == 'admin' ? 'role-admin' : (user.role == 'staff' ? 'role-staff' : 'role-user') }}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+
+                        <td>{{ user.isActive ? 'Active' : 'Disabled' }}</td>
+
+                        <td>
+                            {{ user.createdAt|date('Y-m-d H:i:s') }}
+                        </td>
+
+                        <td class="action-buttons">
+
+                            <a href="{{ path('app_admin_user_edit', {id: user.id}) }}"
+                               class="edit-button">
+                                EDIT
+                            </a>
+
+                            {% if user.id != app.user.id %}
+                                <form method="POST"
+                                      class="delete-form"
+                                      action="{{ path('app_admin_user_delete', {id: user.id}) }}"
+                                      onsubmit="return confirm('Are you sure you want to delete this user?');">
+
+                                    <input type="hidden"
+                                           name="_token"
+                                           value="{{ csrf_token('delete_user_' ~ user.id) }}">
+
+                                    <button type="submit" class="delete-button">
+                                        DELETE
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7">No users found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{{ path('app_admin_dashboard') }}" class="back-button">
+        Back to Dashboard
+    </a>
+
+</main>
+</body>
+</html>

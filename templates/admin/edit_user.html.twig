@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User | JG Digital Solutions</title>
+    <link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}">
+</head>
+
+<body class="auth-page">
+
+<div class="auth-container">
+    <div class="auth-box">
+
+        <h1>Edit User</h1>
+
+        <p class="auth-subtitle">
+            Update the account's information, role, status, or password.
+        </p>
+
+        {% if error %}
+            <div class="form-error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+
+            <input type="hidden"
+                   name="_token"
+                   value="{{ csrf_token('edit_user_' ~ user.id) }}">
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text"
+                       id="username"
+                       name="username"
+                       minlength="3"
+                       maxlength="50"
+                       value="{{ formData.username }}"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       maxlength="150"
+                       value="{{ formData.email }}"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="user" {{ formData.role == 'user' ? 'selected' : '' }}>
+                        User
+                    </option>
+                    <option value="staff" {{ formData.role == 'staff' ? 'selected' : '' }}>
+                        Staff
+                    </option>
+                    <option value="admin" {{ formData.role == 'admin' ? 'selected' : '' }}>
+                        Admin
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="is_active">Account status</label>
+                <select id="is_active" name="is_active" required>
+                    <option value="1" {{ formData.is_active == '1' ? 'selected' : '' }}>Active</option>
+                    <option value="0" {{ formData.is_active == '0' ? 'selected' : '' }}>Disabled</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="new_password">Reset password (leave blank to keep current password)</label>
+                <input type="password" id="new_password" name="new_password" minlength="8" maxlength="4096" autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="auth-button">
+                SAVE CHANGES
+            </button>
+        </form>
+
+        <p class="auth-link">
+            <a href="{{ path('app_admin_users') }}">Back to Users</a>
+        </p>
+
+        <p class="auth-link">
+            <a href="{{ path('app_admin_dashboard') }}">Back to Dashboard</a>
+        </p>
+
+    </div>
+</div>
+
+</body>
+</html>

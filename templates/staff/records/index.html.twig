@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Work Records | JG Digital Solutions</title>
+    <link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}">
+</head>
+<body class="admin-page">
+<header class="admin-header"><div class="admin-header-content">
+    <strong class="admin-logo">JG Digital Solutions</strong>
+    <nav class="admin-nav">
+        <a href="{{ path('app_staff_dashboard') }}">Dashboard</a>
+        <a href="{{ path('app_staff_records') }}">My Records</a>
+        <a href="{{ path('app_staff_record_new') }}">Create Record</a>
+        <a href="{{ path('app_profile') }}">My Profile</a>
+        <a href="{{ path('app_password_change') }}">Change Password</a>
+        <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
+    </nav>
+</div></header>
+<main class="admin-container">
+    <div class="admin-heading"><h1>My Work Records</h1><p>Only records created by your account appear here.</p><a class="auth-button" href="{{ path('app_staff_record_new') }}">CREATE RECORD</a></div>
+    {% for message in app.flashes('success') %}<div class="form-success" role="status">{{ message }}</div>{% endfor %}
+    <div class="table-container"><table class="admin-table">
+        <thead><tr><th>Title</th><th>Description</th><th>Status</th><th>Created</th><th>Updated</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for record in records %}
+            <tr>
+                <td>{{ record.title }}</td><td>{{ record.description|slice(0, 120) }}{% if record.description|length > 120 %}…{% endif %}</td>
+                <td>{{ record.status }}</td><td>{{ record.createdAt|date('Y-m-d') }}</td><td>{{ record.updatedAt|date('Y-m-d H:i') }}</td>
+                <td class="action-buttons"><a class="edit-button" href="{{ path('app_staff_record_show', {id: record.id}) }}">VIEW</a><a class="edit-button" href="{{ path('app_staff_record_edit', {id: record.id}) }}">EDIT</a></td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6">You have not created any work records yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+</main>
+</body>
+</html>

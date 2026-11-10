@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard | JG Digital Solutions</title>
+    <link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}">
+</head>
+<body class="dashboard-page">
+<header class="admin-header">
+    <div class="admin-header-content">
+        <strong class="admin-logo">JG Digital Solutions</strong>
+        <nav class="admin-nav">
+            <a href="{{ path('app_staff_dashboard') }}">Dashboard</a>
+            <a href="{{ path('app_staff_records') }}">My Records</a>
+            <a href="{{ path('app_staff_record_new') }}">Create Record</a>
+            <a href="{{ path('app_profile') }}">My Profile</a>
+            <a href="{{ path('app_password_change') }}">Change Password</a>
+            <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
+        </nav>
+    </div>
+</header>
+<main class="admin-container">
+    <div class="admin-heading">
+        <h1>Staff Dashboard</h1>
+        <p>Welcome, {{ app.user.username }}. Manage the work records assigned to your account.</p>
+    </div>
+    <section class="dashboard-grid">
+        <article class="dashboard-card"><h2>My Work Records</h2><p>{{ recordCount }}</p><a class="dashboard-button" href="{{ path('app_staff_records') }}">VIEW RECORDS</a></article>
+        <article class="dashboard-card"><h2>New Work Record</h2><p>Track work you have completed or are handling.</p><a class="dashboard-button" href="{{ path('app_staff_record_new') }}">CREATE RECORD</a></article>
+    </section>
+    <section class="admin-section">
+        <h2>Recent Records</h2>
+        <div class="table-container">
+            <table class="admin-table">
+                <thead><tr><th>Title</th><th>Status</th><th>Last updated</th><th></th></tr></thead>
+                <tbody>
+                {% for record in recentRecords %}
+                    <tr><td>{{ record.title }}</td><td>{{ record.status }}</td><td>{{ record.updatedAt|date('Y-m-d H:i') }}</td><td><a class="edit-button" href="{{ path('app_staff_record_show', {id: record.id}) }}">VIEW</a></td></tr>
+                {% else %}
+                    <tr><td colspan="4">You have not created any work records yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

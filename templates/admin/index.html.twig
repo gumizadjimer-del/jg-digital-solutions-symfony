@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard | JG Digital Solutions</title>
+
+    <link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}">
+</head>
+
+<body class="dashboard-page">
+
+    <header class="admin-header">
+
+        <div class="admin-header-content">
+
+            <strong class="admin-logo">JG Digital Solutions</strong>
+
+            <nav class="admin-nav">
+                <a href="{{ path('app_admin_dashboard') }}">Dashboard</a>
+                <a href="{{ path('app_admin_users') }}">Users</a>
+                <a href="{{ path('app_admin_records') }}">Records</a>
+                <a href="{{ path('app_admin_messages') }}">Messages</a>
+                <a href="{{ path('app_admin_service_requests') }}">Service Requests</a>
+                <a href="{{ path('app_profile') }}">My Profile</a>
+                <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
+            </nav>
+
+        </div>
+
+    </header>
+
+    <main class="dashboard-container">
+
+        <div class="dashboard-heading">
+
+            <h1>Admin Dashboard</h1>
+
+            <p>
+                Welcome, {{ app.user.username }}.
+            </p>
+
+        </div>
+
+        <div class="dashboard-cards">
+
+            <div class="dashboard-card">
+
+                <h2>Users</h2>
+
+                <div class="dashboard-number">
+                    {{ totalUsers }}
+                </div>
+
+                <p>Registered users</p>
+
+                <a href="{{ path('app_admin_users') }}" class="dashboard-button">
+                    MANAGE USERS
+                </a>
+
+            </div>
+
+            <div class="dashboard-card">
+                <h2>Staff</h2>
+                <div class="dashboard-number">{{ totalStaff }}</div>
+                <p>Staff accounts</p>
+                <a href="{{ path('app_admin_users') }}" class="dashboard-button">MANAGE ACCOUNTS</a>
+            </div>
+
+            <div class="dashboard-card">
+                <h2>Work Records</h2>
+                <div class="dashboard-number">{{ totalRecords }}</div>
+                <p>Staff-managed records</p>
+                <a href="{{ path('app_admin_records') }}" class="dashboard-button">MANAGE RECORDS</a>
+            </div>
+
+            <div class="dashboard-card">
+
+                <h2>Messages</h2>
+
+                <div class="dashboard-number">
+                    {{ totalMessages }}
+                </div>
+
+                <p>Contact messages</p>
+
+                <a href="{{ path('app_admin_messages') }}" class="dashboard-button">
+                    VIEW MESSAGES
+                </a>
+
+            </div>
+
+            <div class="dashboard-card">
+
+                <h2>Service Requests</h2>
+
+                <div class="dashboard-number">
+                    {{ totalRequests }}
+                </div>
+
+                <p>Service requests submitted by users.</p>
+
+                <a href="{{ path('app_admin_service_requests') }}" class="dashboard-button">
+                    VIEW REQUESTS
+                </a>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | JG Digital Solutions</title>
+    <link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}">
+</head>
+<body class="auth-page">
+<div class="auth-container">
+    <main class="auth-box">
+        <h1>Create Account</h1>
+        <p class="auth-subtitle">Register for a JG Digital Solutions account.</p>
+
+        {% for error in errors %}
+            <div class="form-error" role="alert">{{ error }}</div>
+        {% endfor %}
+
+        <form method="post" action="{{ path('app_register') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('register') }}">
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" minlength="3" maxlength="50" value="{{ formData.username }}" autocomplete="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" maxlength="150" value="{{ formData.email }}" autocomplete="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" minlength="8" maxlength="4096" autocomplete="new-password" required>
+            </div>
+
+            <button type="submit" class="auth-button">CREATE ACCOUNT</button>
+        </form>
+
+        <p class="auth-link"><a href="{{ path('app_login') }}">Already have an account? Log in</a></p>
+        <p class="auth-link"><a href="{{ path('app_home') }}">Back to Website</a></p>
+    </main>
+</div>
+</body>
+</html>

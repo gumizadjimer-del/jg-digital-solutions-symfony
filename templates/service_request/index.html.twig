@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>New Service Request | JG Digital Solutions</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #000000;
+            color: #ffffff;
+        }
+
+        header {
+            background: #231F20;
+            padding: 20px 40px;
+            border-bottom: 3px solid #FAAF43;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            color: #FAAF43;
+            margin: 0;
+        }
+
+        header a {
+            color: #ffffff;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        header a:hover {
+            color: #FAAF43;
+        }
+
+        main {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        .form-container {
+            background: #231F20;
+            padding: 30px;
+            border-radius: 5px;
+        }
+
+        h2 {
+            color: #FAAF43;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        select,
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #555555;
+            background: #000000;
+            color: #ffffff;
+            border-radius: 4px;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 12px 20px;
+            background: #FAAF43;
+            color: #000000;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #ffffff;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #FAAF43;
+            text-decoration: none;
+        }
+
+        .flash-error {
+            background: #5c1f1f;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+    .logout-link { background: transparent; border: 0; color: #FFFFFF; font: inherit; cursor: pointer; }
+        .logout-link:hover { color: #FAAF43; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>JG Digital Solutions</h1>
+
+    <nav>
+        <a href="{{ path('app_dashboard') }}">Dashboard</a>
+        <a href="{{ path('app_profile') }}">My Profile</a>
+        <a href="{{ path('app_password_change') }}">Change Password</a>
+        <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
+    </nav>
+</header>
+
+<main>
+
+    <div class="form-container">
+
+        <h2>New Service Request</h2>
+
+        <p>Tell us what service you need.</p>
+{% for error in errors %}<div class="flash-error">{{ error }}</div>{% endfor %}
+
+        {% for message in app.flashes('error') %}
+            <div class="flash-error">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <form method="post"><input type="hidden" name="_token" value="{{ csrf_token('service_request') }}">
+
+            <label for="service">Service</label>
+
+            <select name="service" id="service" required>
+                <option value="">-- Select a Service --</option>
+                <option value="Graphic & Brand Design" {{ formData.service == 'Graphic & Brand Design' ? 'selected' : '' }}>
+                    Graphic & Brand Design
+                </option>
+                <option value="Software Development" {{ formData.service == 'Software Development' ? 'selected' : '' }}>
+                    Software Development
+                </option>
+                <option value="Web Development" {{ formData.service == 'Web Development' ? 'selected' : '' }}>Web Development</option>
+                <option value="Data & Simulation" {{ formData.service == 'Data & Simulation' ? 'selected' : '' }}>Data & Simulation</option>
+            </select>
+
+            <label for="description">Description</label>
+
+            <textarea
+                name="description"
+                id="description"
+                placeholder="Describe what you need..."
+                required
+            >{{ formData.description }}</textarea>
+
+            <button type="submit">
+                Submit Request
+            </button>
+
+        </form>
+
+        <a class="back" href="{{ path('app_dashboard') }}">
+            &larr; Back to Dashboard
+        </a>
+
+    </div>
+
+</main>
+
+</body>
+</html>

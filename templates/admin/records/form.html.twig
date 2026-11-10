@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ heading }} | JG Digital Solutions</title>
+    <link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}">
+</head>
+<body class="admin-page">
+<header class="admin-header"><div class="admin-header-content">
+    <strong class="admin-logo">JG Digital Solutions</strong>
+    <nav class="admin-nav">
+        <a href="{{ path('app_admin_dashboard') }}">Dashboard</a>
+        <a href="{{ path('app_admin_users') }}">Users</a>
+        <a href="{{ path('app_admin_records') }}">Records</a>
+        <a href="{{ path('app_admin_messages') }}">Messages</a>
+        <a href="{{ path('app_admin_service_requests') }}">Service Requests</a>
+        <a href="{{ path('app_profile') }}">My Profile</a>
+        <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
+    </nav>
+</div></header>
+<main class="admin-container">
+    <h1>{{ heading }}</h1>
+    <p class="form-hint">The authenticated account is assigned as the record creator automatically.</p>
+    {% for error in errors %}<div class="form-error" role="alert">{{ error }}</div>{% endfor %}
+    <section class="request-card">
+        <form method="post" action="{{ formAction }}">
+            <input type="hidden" name="_token" value="{{ csrf_token(csrfTokenId) }}">
+            <div class="form-group"><label for="title">Title</label><input id="title" name="title" type="text" minlength="3" maxlength="150" value="{{ formData.title }}" required></div>
+            <div class="form-group"><label for="description">Description</label><textarea id="description" name="description" maxlength="5000" required>{{ formData.description }}</textarea></div>
+            <div class="form-group"><label for="status">Status</label><select id="status" name="status" required>{% for status in statuses %}<option value="{{ status }}" {{ formData.status == status ? 'selected' : '' }}>{{ status }}</option>{% endfor %}</select></div>
+            <button class="auth-button" type="submit">SAVE RECORD</button>
+        </form>
+    </section>
+    <p class="auth-link"><a href="{{ path('app_admin_records') }}">Back to Records</a></p>
+</main>
+</body>
+</html>

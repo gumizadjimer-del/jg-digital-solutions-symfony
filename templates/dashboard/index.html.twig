@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | JG Digital Solutions</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #000000;
+            color: #ffffff;
+        }
+
+        header {
+            background: #231F20;
+            padding: 20px 40px;
+            border-bottom: 3px solid #FAAF43;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            color: #FAAF43;
+            margin: 0;
+        }
+
+        header a {
+            color: #ffffff;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        header a:hover {
+            color: #FAAF43;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+        }
+
+        .welcome h2 {
+            margin-bottom: 5px;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .new-request {
+            background: #FAAF43;
+            color: #000000;
+            padding: 12px 18px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+
+        .new-request:hover {
+            background: #ffffff;
+        }
+
+        .request {
+            background: #231F20;
+            border: 1px solid #444444;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .request h3 {
+            color: #FAAF43;
+            margin-top: 0;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .note {
+            margin-top: 15px;
+            padding: 12px;
+            background: #000000;
+            border-left: 3px solid #FAAF43;
+        }
+
+        .empty {
+            background: #231F20;
+            padding: 25px;
+            text-align: center;
+        }
+    .logout-link { background: transparent; border: 0; color: #FFFFFF; font: inherit; cursor: pointer; }
+        .logout-link:hover { color: #FAAF43; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>JG Digital Solutions</h1>
+
+    <nav>
+        <a href="{{ path('app_dashboard') }}">Dashboard</a>
+        <a href="{{ path('app_profile') }}">My Profile</a>
+        <a href="{{ path('app_password_change') }}">Change Password</a>
+        <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
+    </nav>
+</header>
+
+<main>
+
+    <section class="welcome">
+        <h2>Welcome, {{ app.user.username }}!</h2>
+        <p>View the status of your service requests below.</p>
+    </section>
+
+    {% for message in app.flashes('success') %}<div class="form-success">{{ message }}</div>{% endfor %}
+
+    <section>
+        <div class="request-header">
+            <h2>My Service Requests</h2>
+
+            <a class="new-request" href="{{ path('app_service_request_new') }}">
+                + New Service Request
+            </a>
+        </div>
+
+        {% if serviceRequests is empty %}
+
+            <div class="empty">
+                <p>You currently have no service requests.</p>
+            </div>
+
+        {% else %}
+
+            {% for request in serviceRequests %}
+
+                <div class="request">
+
+                    <h3>{{ request.service }}</h3>
+
+                    <p>
+                        <strong>Description:</strong>
+                        {{ request.description }}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong>
+                        <span class="status">{{ request.status }}</span>
+                    </p>
+
+                    <p>
+                        <strong>Date:</strong>
+                        {{ request.createdAt|date('F d, Y') }}
+                    </p>
+
+                    <p><a href="{{ path('app_service_request_show', {id: request.id}) }}">View request details</a></p>
+                    {% if request.adminNote %}
+                        <div class="note">
+                            <strong>Admin Note:</strong>
+                            <p>{{ request.adminNote }}</p>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+</body>
+</html>

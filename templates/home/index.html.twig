@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JG Digital Solutions</title>
+
+    <link rel="stylesheet" href="{{ asset('CSS/style.css') }}">
+</head>
+
+<body>
+
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-container">
+
+            <img src="{{ asset('image/Asset 1.png') }}" class="logo" alt="JG Digital Solutions Logo">
+
+
+            <nav class="navigation">
+                <a href="#home">HOME</a>
+                <a href="#services">SERVICES</a>
+                <a href="#work">OUR WORK</a>
+                <a href="#contact">CONTACT</a>
+                <a href="{{ path('app_login') }}">LOGIN</a>
+            </nav>
+
+        </div>
+    </header>
+
+
+    <!-- MAIN BACKGROUND -->
+    <main class="main-content">
+         <!-- MAIN BANNER -->
+<section class="hero" id = "home">
+
+    <div class="hero-content">
+
+        <div class="hero-text">
+
+            <p class="hero-label">JG DIGITAL SOLUTIONS</p>
+
+            <h1>
+                TURNING IDEAS INTO
+                <span>DIGITAL SOLUTIONS.</span>
+            </h1>
+
+            <p class="hero-description">
+                We create modern digital solutions that help businesses
+                bring their ideas to life.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="#services" class="hero-btn primary-btn">
+                    OUR SERVICES
+                </a>
+
+                <a href="{{ path('app_login') }}" class="hero-btn secondary-btn">
+                    GET STARTED
+                </a>
+            </div>
+
+        </div>
+
+        <div class="hero-image">
+            <img src="{{ asset('image/1x/Asset 1.png') }}" alt="JG Digital Solutions">
+        </div>
+
+    </div>
+
+</section>
+<!-- SERVICES SECTION -->
+<section class="services-section" id="services">
+
+    <h2 class="services-title">OUR <span>SERVICES</span></h2>
+
+    <!-- Main Services -->
+    <div class="services-grid">
+
+        <div class="service-card">
+            <img src="{{ asset('image/1x/Asset 3.png') }}" alt="Web Development">
+            <h3>WEB DEVELOPMENT</h3>
+            <p>
+                We build modern, responsive websites
+                that look great and work on all devices.
+            </p>
+        </div>
+
+        <div class="service-card">
+            <img src="{{ asset('image/1x/Asset 4.png') }}" alt="Software Development">
+            <h3>SOFTWARE DEVELOPMENT</h3>
+            <p>
+                We develop custom software solutions
+                to solve real business problems.
+            </p>
+        </div>
+
+        <div class="service-card">
+            <img src="{{ asset('image/1x/Asset 5.png') }}" alt="Graphic and Brand Design">
+            <h3>GRAPHIC &amp; BRAND DESIGN</h3>
+            <p>
+                We design logos, branding, and visuals
+                that make your brand stand out.
+            </p>
+        </div>
+
+        <div class="service-card">
+            <img src="{{ asset('image/1x/Asset 6.png') }}" alt="Data and Simulation">
+            <h3>DATA &amp; SIMULATION</h3>
+            <p>
+                We create data-driven models and simulations
+                to analyze and support better decisions.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- Business Values -->
+    <div class="service-values">
+
+        <div class="value-item">
+            <img src="{{ asset('image/1x/Asset 7.png') }}" alt="Creative Approach">
+            <h3>CREATIVE APPROACH</h3>
+            <p>
+                We combine creativity and technology to
+                deliver practical and engaging solutions.
+            </p>
+        </div>
+
+        <div class="value-item">
+            <img src="{{ asset('image/1x/Asset 8.png') }}" alt="Reliable and Professional">
+            <h3>RELIABLE &amp; PROFESSIONAL</h3>
+            <p>
+                We deliver quality work, communicate clearly,
+                and meet deadlines you can trust.
+            </p>
+        </div>
+
+        <div class="value-item">
+            <img src="{{ asset('image/1x/Asset 9.png') }}" alt="Innovative Solutions">
+            <h3>INNOVATIVE SOLUTIONS</h3>
+            <p>
+                We use modern tools and ideas to help your
+                business grow and stay ahead in the digital world.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+<!-- OUR WORK SECTION -->
+<section class="work-section" id="work">
+
+    <h2 class="work-title">OUR WORK</h2>
+
+    <div class="work-title-line"></div>
+
+    <div class="work-grid">
+
+        <!-- Graphic Design -->
+        <div class="work-card">
+
+            <div class="work-image">
+                <img src="{{ asset('image/1x/1x/Asset 10.png') }}" alt="Graphic Design Project">
+            </div>
+
+            <h3>GRAPHIC DESIGN</h3>
+
+            <p>
+                A poster that advertise
+                Fushigi Ball.
+            </p>
+
+        </div>
+
+
+        <!-- Supermarket Simulation -->
+        <div class="work-card">
+
+            <div class="work-image">
+                <img src="{{ asset('image/1x/1x/Asset 11.png') }}" alt="Supermarket Simulation Project">
+            </div>
+
+            <h3>SUPERMARKET SIMULATION</h3>
+
+            <p>
+                A simulation on how a Online
+                Shopping operate through a
+                simulation.
+            </p>
+
+        </div>
+
+
+        <!-- Stock Market Simulation -->
+        <div class="work-card">
+
+            <div class="work-image">
+                <img src="{{ asset('image/1x/1x/Asset 12.png') }}" alt="Stock Market Simulation Project">
+            </div>
+
+            <h3>STOCK MARKET SIMULATION</h3>
+
+            <p>
+                Stock price simulation using
+                Python and data modeling.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- CONTACT US SECTION -->
+<section class="contact-section" id="contact">
+
+    <h2 class="contact-title">
+        CONTACT <span>US</span>
+    </h2>
+
+    <div class="contact-title-line"></div>
+
+    <div class="contact-container">
+
+        <!-- LEFT: CONTACT FORM -->
+        {% for message in app.flashes('success') %}<div class="form-success">{{ message }}</div>{% endfor %}
+        {% for message in app.flashes('error') %}<div class="form-error">{{ message }}</div>{% endfor %}
+        <form class="contact-form" method="post" action="{{ path('app_contact') }}">
+
+            <input type="hidden" name="_token" value="{{ csrf_token('contact_message') }}">
+
+            <label for="contact-name">NAME</label>
+            <input type="text" id="contact-name" name="name" maxlength="100" required>
+
+            <label for="contact-email">EMAIL</label>
+            <input type="email" id="contact-email" name="email" maxlength="100" required>
+
+            <label for="contact-message">MESSAGE</label>
+            <textarea id="contact-message" name="message" maxlength="5000" required></textarea>
+
+            <button type="submit" id ="send_message">SEND MESSAGE</button>
+
+        </form>
+
+
+        <!-- CENTER DIVIDER -->
+        <div class="contact-divider"></div>
+
+
+        <!-- RIGHT: CONTACT INFORMATION -->
+        <div class="contact-info">
+
+            <h3>
+                LET'S WORK TOGETHER!<br>
+                FEEL FREE TO SEND US<br>
+                A MESSAGE
+            </h3>
+
+            <div class="contact-detail">
+                <img src="{{ asset('image/1x/1x/Asset 13.png') }}" alt="Email">
+                <span>JGdigitalsolution@gmail.com</span>
+            </div>
+
+            <div class="contact-detail">
+                <img src="{{ asset('image/1x/1x/Asset 14.png') }}" alt="Phone">
+                <span>+63 939 834 4760</span>
+            </div>
+
+            <div class="contact-detail">
+                <img src="{{ asset('image/1x/1x/Asset 15.png') }}" alt="Location">
+                <span>
+                    Dumaguete City, Negros Oriental, Philippines<br>
+                    Philippines
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+    </main>
+
+    
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+
+            <img src="{{ asset('image/Asset 1.png') }}" class="footer-logo" alt="JG Digital Solutions Logo">
+
+            <p>&copy; 2026 JG Digital Solutions. All rights reserved.</p>
+
+            <div class="footer-links">
+    <span>Facebook</span>
+    <span>Instagram</span>
+    <a href="mailto:JGdigitalsolution@gmail.com">Email</a>
+</div>
+
+        </div>
+    </footer>
+
+</body>
+</html>
