@@ -98,6 +98,7 @@ final class AdminUserController extends AbstractController
             $formData['email'] = strtolower(trim($request->request->getString('email')));
             $formData['role'] = $request->request->getString('role');
             $password = $request->request->getString('password');
+            $passwordConfirmation = $request->request->getString('password_confirmation');
 
             if (!$this->isCsrfTokenValid('create_user', $request->request->getString('_token'))) {
                 $error = 'Invalid security token.';
@@ -109,6 +110,8 @@ final class AdminUserController extends AbstractController
                 $error = 'Choose a valid account role.';
             } elseif (mb_strlen($password) < 8 || mb_strlen($password) > 4096) {
                 $error = 'Password must be at least 8 characters.';
+            } elseif ($password !== $passwordConfirmation) {
+                $error = 'Password confirmation does not match.';
             } elseif (
                 $userRepository->findOneBy(['username' => $formData['username']]) !== null ||
                 $userRepository->findOneBy(['email' => $formData['email']]) !== null
@@ -170,6 +173,7 @@ final class AdminUserController extends AbstractController
                 $role = $request->request->getString('role');
                 $isActive = $request->request->getString('is_active');
                 $newPassword = $request->request->getString('new_password');
+                $passwordConfirmation = $request->request->getString('confirm_new_password');
                 $formData = [
                     'username' => $username,
                     'email' => $email,
@@ -193,6 +197,8 @@ final class AdminUserController extends AbstractController
                     $error = 'Choose a valid account status.';
                 } elseif ($newPassword !== '' && (mb_strlen($newPassword) < 8 || mb_strlen($newPassword) > 4096)) {
                     $error = 'A reset password must be at least 8 characters.';
+                } elseif ($newPassword !== $passwordConfirmation) {
+                    $error = 'Reset password confirmation does not match.';
                 } elseif (
                     $currentUser !== null &&
                     $user->getId() === $currentUser->getId() &&

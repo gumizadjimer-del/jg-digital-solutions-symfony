@@ -76,6 +76,19 @@ final class StaffAndAccountManagementTest extends WebTestCase
         $editForm['role'] = 'staff';
         $editForm['is_active'] = '0';
         $editForm['new_password'] = 'ResetPass123!';
+        $editForm['confirm_new_password'] = 'DifferentPass123!';
+        $client->submit($editForm);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.form-error', 'Reset password confirmation does not match.');
+
+        $editCrawler = $client->request('GET', '/admin/users/' . $staffId . '/edit');
+        $editForm = $editCrawler->selectButton('SAVE CHANGES')->form();
+        $editForm['username'] = $staffUsername;
+        $editForm['email'] = $staffEmail;
+        $editForm['role'] = 'staff';
+        $editForm['is_active'] = '0';
+        $editForm['new_password'] = 'ResetPass123!';
+        $editForm['confirm_new_password'] = 'ResetPass123!';
         $client->submit($editForm);
         self::assertResponseRedirects('/admin/users');
 
@@ -84,6 +97,30 @@ final class StaffAndAccountManagementTest extends WebTestCase
         self::assertInstanceOf(User::class, $updatedStaff);
         self::assertFalse($updatedStaff->isActive());
         self::assertTrue(password_verify('ResetPass123!', (string) $updatedStaff->getPassword()));
+    }
+
+    public function testAdminCannotCreateAccountWithMismatchedPasswordConfirmation(): void
+    {
+        $client = static::createClient();
+        $admin = $this->persistUser('createaccountadmin', 'admin');
+        $client->loginUser($admin);
+
+        $crawler = $client->request('GET', '/admin/users/new');
+        $form = $crawler->selectButton('CREATE ACCOUNT')->form();
+        $username = 'mismatch_' . bin2hex(random_bytes(4));
+        $email = $username . '@example.test';
+        $form['username'] = $username;
+        $form['email'] = $email;
+        $form['role'] = 'staff';
+        $form['password'] = 'TempPass123!';
+        $form['password_confirmation'] = 'DifferentPass123!';
+        $client->submit($form);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.form-error', 'Password confirmation does not match.');
+        self::assertNull(static::getContainer()->get(EntityManagerInterface::class)
+            ->getRepository(User::class)
+            ->findOneBy(['email' => $email]));
     }
 
     public function testDisabledAccountCannotAuthenticate(): void
@@ -152,6 +189,8 @@ final class StaffAndAccountManagementTest extends WebTestCase
         $client->request('GET', '/staff');
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Staff Dashboard');
+        self::assertSelectorTextContains('main', (string) $owner->getEmail());
+        self::assertSelectorTextContains('main', 'Account information');
 
         $crawler = $client->request('GET', '/staff/records/new');
         $form = $crawler->selectButton('SAVE RECORD')->form();
@@ -202,6 +241,8 @@ final class StaffAndAccountManagementTest extends WebTestCase
         $client->request('POST', '/staff/records/' . $recordId . '/delete', ['_token' => 'invalid']);
         self::assertResponseStatusCodeSame(403);
         $client->request('GET', '/admin');
+        self::assertResponseStatusCodeSame(403);
+        $client->request('GET', '/admin/records/' . $recordId);
         self::assertResponseStatusCodeSame(403);
     }
 
@@ -381,7 +422,8 @@ final class StaffAndAccountManagementTest extends WebTestCase
         $form = $crawler->selectButton('SAVE RECORD')->form();
         $uniqueTitle = 'Admin Managed ' . bin2hex(random_bytes(3));
         $form['title'] = $uniqueTitle;
-        $form['description'] = 'Created by an administrator for the system-wide record list.';
+        $fullDescription = str_repeat('Detailed work information. ', 12) . 'FULL_DESCRIPTION_END';
+        $form['description'] = $fullDescription;
         $form['status'] = 'On Hold';
         $client->submit($form);
         self::assertResponseRedirects('/admin/records');
@@ -392,6 +434,12 @@ final class StaffAndAccountManagementTest extends WebTestCase
         $recordId = (int) $record->getId();
         $this->recordIds[] = $recordId;
         self::assertSame($admin->getId(), $record->getCreatedBy()?->getId());
+
+        $detailCrawler = $client->request('GET', '/admin/records/' . $recordId . '?q=' . rawurlencode($uniqueTitle) . '&status=On%20Hold&page=2');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.request-card', 'FULL_DESCRIPTION_END');
+        self::assertSelectorTextContains('.request-card', (string) $admin->getEmail());
+        self::assertStringContainsString('page=2', (string) $detailCrawler->filter('.auth-link a')->attr('href'));
 
         $staffTitle = 'Staff Record ' . bin2hex(random_bytes(3));
         $now = new \DateTimeImmutable();
@@ -465,6 +513,7 @@ final class StaffAndAccountManagementTest extends WebTestCase
         $form['email'] = $prefix . '_' . $suffix . '@example.test';
         $form['role'] = $role;
         $form['password'] = 'TempPass123!';
+        $form['password_confirmation'] = 'TempPass123!';
         $client->submit($form);
         self::assertResponseRedirects('/admin/users');
 

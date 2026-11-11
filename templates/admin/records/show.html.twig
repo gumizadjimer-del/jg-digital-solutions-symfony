@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ record.title }} | JG Digital Solutions</title>
+    <link rel="stylesheet" href="{{ asset('CSS/styleA.css') }}">
+</head>
+<body class="admin-page">
+<header class="admin-header"><div class="admin-header-content">
+    <strong class="admin-logo">JG Digital Solutions</strong>
+    <nav class="admin-nav">
+        <a href="{{ path('app_admin_dashboard') }}">Dashboard</a>
+        <a href="{{ path('app_admin_users') }}">Users</a>
+        <a href="{{ path('app_admin_records') }}">Records</a>
+        <a href="{{ path('app_admin_messages') }}">Messages</a>
+        <a href="{{ path('app_admin_service_requests') }}">Service Requests</a>
+        <a href="{{ path('app_profile') }}">My Profile</a>
+        <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
+    </nav>
+</div></header>
+<main class="admin-container">
+    <div class="admin-heading">
+        <h1>{{ record.title }}</h1>
+        <p>Full work record details</p>
+    </div>
+    <section class="request-card" aria-label="Work record details">
+        <p><strong>Status:</strong> {{ record.status }}</p>
+        <p><strong>Created by:</strong> {{ record.createdBy.username }} ({{ record.createdBy.email }})</p>
+        <p><strong>Created:</strong> {{ record.createdAt|date('Y-m-d H:i') }}</p>
+        <p><strong>Last updated:</strong> {{ record.updatedAt|date('Y-m-d H:i') }}</p>
+        <h2>Description</h2>
+        <p>{{ record.description|nl2br }}</p>
+        <div class="action-buttons">
+            <a class="edit-button" href="{{ path('app_admin_record_edit', {id: record.id}) }}">EDIT RECORD</a>
+            <form method="post" action="{{ path('app_admin_record_delete', {id: record.id}) }}" onsubmit="return confirm('Delete this work record?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_admin_record_' ~ record.id) }}">
+                <button class="delete-button" type="submit">DELETE RECORD</button>
+            </form>
+        </div>
+    </section>
+    <p class="auth-link"><a href="{{ path('app_admin_records', {q: search, status: selectedStatus, page: page}) }}">Back to Records</a></p>
+</main>
+</body>
+</html>

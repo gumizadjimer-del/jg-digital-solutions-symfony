@@ -46,6 +46,7 @@ final class RegistrationControllerTest extends WebTestCase
         $form['username'] = $username;
         $form['email'] = $email;
         $form['password'] = $password;
+        $form['password_confirmation'] = $password;
         $client->submit($form);
         self::assertResponseRedirects('/login');
 
@@ -89,5 +90,25 @@ final class RegistrationControllerTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.form-error', 'form expired');
+    }
+
+    public function testRegistrationRejectsMismatchedPasswordConfirmation(): void
+    {
+        $client = static::createClient();
+        $username = 'test_' . bin2hex(random_bytes(5));
+        $email = $username . '@example.test';
+        $crawler = $client->request('GET', '/register');
+        $form = $crawler->selectButton('CREATE ACCOUNT')->form();
+        $form['username'] = $username;
+        $form['email'] = $email;
+        $form['password'] = 'ExamplePass123!';
+        $form['password_confirmation'] = 'DifferentPass123!';
+        $client->submit($form);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.form-error', 'Password confirmation does not match.');
+        self::assertNull(static::getContainer()->get(EntityManagerInterface::class)
+            ->getRepository(User::class)
+            ->findOneBy(['email' => $email]));
     }
 }

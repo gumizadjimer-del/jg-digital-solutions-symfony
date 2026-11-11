@@ -21,6 +21,7 @@ final class StaffDashboardController extends AbstractController
         }
 
         return $this->render('staff/index.html.twig', [
+            'staffMember' => $user,
             'recordCount' => $recordRepository->countOwnedBy($user),
             'recentRecords' => $recordRepository->findRecentOwnedBy($user),
         ]);

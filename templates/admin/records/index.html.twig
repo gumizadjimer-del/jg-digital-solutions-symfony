@@ -39,6 +39,7 @@
                 <td>{{ record.createdBy.username }} ({{ record.createdBy.role }})</td><td>{{ record.status }}</td>
                 <td>{{ record.createdAt|date('Y-m-d') }}</td><td>{{ record.updatedAt|date('Y-m-d H:i') }}</td>
                 <td class="action-buttons">
+                    <a class="edit-button" href="{{ path('app_admin_record_show', {id: record.id, q: search, status: selectedStatus, page: page}) }}">VIEW</a>
                     <a class="edit-button" href="{{ path('app_admin_record_edit', {id: record.id}) }}">EDIT</a>
                     <form method="post" action="{{ path('app_admin_record_delete', {id: record.id}) }}" onsubmit="return confirm('Delete this work record?');">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete_admin_record_' ~ record.id) }}">

@@ -23,8 +23,16 @@
 <main class="admin-container">
     <div class="admin-heading">
         <h1>Staff Dashboard</h1>
-        <p>Welcome, {{ app.user.username }}. Manage the work records assigned to your account.</p>
+        <p>Welcome, {{ staffMember.username }}. Manage the work records assigned to your account.</p>
     </div>
+    <section class="admin-section request-card" aria-labelledby="staff-account-heading">
+        <h2 id="staff-account-heading">Account information</h2>
+        <p><strong>Username:</strong> {{ staffMember.username }}</p>
+        <p><strong>Email:</strong> {{ staffMember.email }}</p>
+        <p><strong>Role:</strong> {{ staffMember.role|capitalize }}</p>
+        <p><strong>Account status:</strong> {{ staffMember.isActive ? 'Active' : 'Disabled' }}</p>
+        <p><strong>Member since:</strong> {{ staffMember.createdAt|date('Y-m-d') }}</p>
+    </section>
     <section class="dashboard-grid">
         <article class="dashboard-card"><h2>My Work Records</h2><p>{{ recordCount }}</p><a class="dashboard-button" href="{{ path('app_staff_records') }}">VIEW RECORDS</a></article>
         <article class="dashboard-card"><h2>New Work Record</h2><p>Track work you have completed or are handling.</p><a class="dashboard-button" href="{{ path('app_staff_record_new') }}">CREATE RECORD</a></article>

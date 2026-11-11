@@ -83,6 +83,22 @@ final class AdminRecordController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}', name: 'app_admin_record_show', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function show(StaffRecord $record, Request $request): Response
+    {
+        $status = $request->query->getString('status');
+        if (!in_array($status, StaffRecord::STATUSES, true)) {
+            $status = '';
+        }
+
+        return $this->render('admin/records/show.html.twig', [
+            'record' => $record,
+            'search' => mb_substr(trim($request->query->getString('q')), 0, 100),
+            'selectedStatus' => $status,
+            'page' => max(1, min(1_000_000, $request->query->getInt('page', 1))),
+        ]);
+    }
+
     #[Route('/new', name: 'app_admin_record_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {

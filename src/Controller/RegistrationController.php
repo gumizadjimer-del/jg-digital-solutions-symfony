@@ -29,6 +29,7 @@ final class RegistrationController extends AbstractController
             $formData['username'] = trim($request->request->getString('username'));
             $formData['email'] = strtolower(trim($request->request->getString('email')));
             $password = $request->request->getString('password');
+            $passwordConfirmation = $request->request->getString('password_confirmation');
 
             if (!$this->isCsrfTokenValid(
                 'register',
@@ -50,6 +51,9 @@ final class RegistrationController extends AbstractController
 
             if (mb_strlen($password) < 8 || mb_strlen($password) > 4096) {
                 $errors[] = 'Password must be at least 8 characters.';
+            }
+            if ($password !== $passwordConfirmation) {
+                $errors[] = 'Password confirmation does not match.';
             }
 
             if ($userRepository->findOneBy(['username' => $formData['username']])) {
