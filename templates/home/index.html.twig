@@ -6,6 +6,7 @@
     <title>JG Digital Solutions</title>
 
     <link rel="stylesheet" href="{{ asset('CSS/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('CSS/contact-popup.css') }}">
 </head>
 
 <body>
@@ -170,8 +171,7 @@
             <h3>GRAPHIC DESIGN</h3>
 
             <p>
-                A poster that advertise
-                Fushigi Ball.
+                A promotional poster created for Fushigi Ball.
             </p>
 
         </div>
@@ -187,9 +187,7 @@
             <h3>SUPERMARKET SIMULATION</h3>
 
             <p>
-                A simulation on how a Online
-                Shopping operate through a
-                simulation.
+                A simulation showing how an online shopping system operates.
             </p>
 
         </div>
@@ -227,7 +225,6 @@
     <div class="contact-container">
 
         <!-- LEFT: CONTACT FORM -->
-        {% for message in app.flashes('success') %}<div class="form-success">{{ message }}</div>{% endfor %}
         {% for message in app.flashes('error') %}<div class="form-error">{{ message }}</div>{% endfor %}
         <form class="contact-form" method="post" action="{{ path('app_contact') }}">
 
@@ -273,8 +270,7 @@
             <div class="contact-detail">
                 <img src="{{ asset('image/1x/1x/Asset 15.png') }}" alt="Location">
                 <span>
-                    Dumaguete City, Negros Oriental, Philippines<br>
-                    Philippines
+                    Dumaguete City, Negros Oriental, Philippines
                 </span>
             </div>
 
@@ -304,6 +300,18 @@
 
         </div>
     </footer>
+
+    {% for message in app.flashes('success') %}
+        <dialog class="contact-success-dialog" aria-labelledby="contact-success-title">
+            <div class="contact-success-icon" aria-hidden="true">&#10003;</div>
+            <h2 id="contact-success-title">Message sent</h2>
+            <p>{{ message }}</p>
+            <form method="dialog"><button type="submit">Close</button></form>
+        </dialog>
+        <script>
+            document.querySelector('.contact-success-dialog')?.showModal();
+        </script>
+    {% endfor %}
 
 </body>
 </html>

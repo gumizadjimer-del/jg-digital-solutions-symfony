@@ -16,8 +16,15 @@
 
         header {
             background: #231F20;
-            padding: 20px 40px;
             border-bottom: 3px solid #FAAF43;
+        }
+
+        .dashboard-header-content {
+            max-width: 1200px;
+            min-height: 80px;
+            margin: 0 auto;
+            padding: 0 40px;
+            box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -28,13 +35,32 @@
             margin: 0;
         }
 
-        header a {
-            color: #ffffff;
-            text-decoration: none;
-            margin-left: 20px;
+        .logo {
+            display: block;
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
         }
 
-        header a:hover {
+        .brand-image-link {
+            display: block;
+            margin: 0;
+            line-height: 0;
+        }
+
+        .dashboard-nav {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .dashboard-nav a {
+            color: #FFFFFF;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .dashboard-nav a:hover {
             color: #FAAF43;
         }
 
@@ -83,6 +109,24 @@
         .request h3 {
             color: #FAAF43;
             margin-top: 0;
+        }
+
+        .view-request-button {
+            display: inline-block;
+            padding: 10px 16px;
+            border: 2px solid #FAAF43;
+            border-radius: 4px;
+            background: #FAAF43;
+            color: #231F20;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .view-request-button:hover,
+        .view-request-button:focus-visible {
+            background: transparent;
+            color: #FAAF43;
         }
 
         .status {
@@ -152,28 +196,29 @@
         .request-pagination a { color: #FAAF43; }
 
         @media (max-width: 700px) {
-            header { padding: 18px 20px; align-items: flex-start; gap: 14px; flex-direction: column; }
-            header nav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-            header a { margin-left: 0; }
+            .dashboard-header-content { min-height: 80px; padding: 16px 20px; align-items: flex-start; gap: 14px; flex-direction: column; }
+            .dashboard-nav { flex-wrap: wrap; gap: 10px; }
             .request-header { align-items: flex-start; flex-direction: column; gap: 12px; }
             .request-filter-form { grid-template-columns: 1fr; }
         }
-    .logout-link { background: transparent; border: 0; color: #FFFFFF; font: inherit; cursor: pointer; }
+    .dashboard-nav form { display: inline; margin: 0; }
+    .logout-link { background: transparent; border: 0; color: #FFFFFF; font: inherit; font-weight: bold; cursor: pointer; }
         .logout-link:hover { color: #FAAF43; }
     </style>
 </head>
 
 <body>
 
-<header>
-    <h1>JG Digital Solutions</h1>
+<header class="dashboard-header">
+    <div class="dashboard-header-content">
+    <a class="brand-image-link" href="{{ path('app_home') }}" aria-label="JG Digital Solutions home"><img class="logo" src="{{ asset('image/Asset 1.png') }}" alt="JG Digital Solutions"></a>
 
-    <nav>
+    <nav class="dashboard-nav">
         <a href="{{ path('app_dashboard') }}">Dashboard</a>
         <a href="{{ path('app_profile') }}">My Profile</a>
-        <a href="{{ path('app_password_change') }}">Change Password</a>
         <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
     </nav>
+    </div>
 </header>
 
 <main>
@@ -251,7 +296,7 @@
                         {{ request.createdAt|date('F d, Y') }}
                     </p>
 
-                    <p><a href="{{ path('app_service_request_show', {id: request.id}) }}">View request details</a></p>
+                    <p><a class="view-request-button" href="{{ path('app_service_request_show', {id: request.id}) }}">View request</a></p>
                     {% if request.adminNote %}
                         <div class="note">
                             <strong>Admin Note:</strong>

@@ -102,14 +102,39 @@ final class ServiceRequestFlowTest extends WebTestCase
         }
     }
 
-    private function makeUser(string $label): User
+    public function testStaffAndAdminsAreRedirectedAwayFromCustomerRequestForm(): void
+    {
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $staff = $this->makeUser('staffform', 'staff');
+        $admin = $this->makeUser('adminform', 'admin');
+        $entityManager->persist($staff);
+        $entityManager->persist($admin);
+        $entityManager->flush();
+        $staffId = (int) $staff->getId();
+        $adminId = (int) $admin->getId();
+
+        try {
+            $client->loginUser($staff);
+            $client->request('GET', '/service-request/new');
+            self::assertResponseRedirects('/staff');
+
+            $client->loginUser($admin);
+            $client->request('GET', '/service-request/new');
+            self::assertResponseRedirects('/admin');
+        } finally {
+            $this->removeFixtures([], [$staffId, $adminId]);
+        }
+    }
+
+    private function makeUser(string $label, string $role = 'user'): User
     {
         $suffix = bin2hex(random_bytes(5));
         $user = new User();
         $user->setUsername($label . '_' . $suffix);
         $user->setEmail($label . '_' . $suffix . '@example.test');
         $user->setPassword(password_hash('TestPassword123!', PASSWORD_DEFAULT));
-        $user->setRole('user');
+        $user->setRole($role);
         $user->setCreatedAt(new \DateTimeImmutable());
 
         return $user;

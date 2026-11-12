@@ -16,8 +16,15 @@
 
         header {
             background: #231F20;
-            padding: 20px 40px;
             border-bottom: 3px solid #FAAF43;
+        }
+
+        .dashboard-header-content {
+            max-width: 1200px;
+            min-height: 80px;
+            margin: 0 auto;
+            padding: 0 40px;
+            box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -28,13 +35,32 @@
             margin: 0;
         }
 
-        header a {
-            color: #ffffff;
-            text-decoration: none;
-            margin-left: 20px;
+        .logo {
+            display: block;
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
         }
 
-        header a:hover {
+        .brand-image-link {
+            display: block;
+            margin: 0;
+            line-height: 0;
+        }
+
+        .dashboard-nav {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .dashboard-nav a {
+            color: #FFFFFF;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .dashboard-nav a:hover {
             color: #FAAF43;
         }
 
@@ -103,22 +129,41 @@
             padding: 12px;
             margin-bottom: 20px;
         }
-    .logout-link { background: transparent; border: 0; color: #FFFFFF; font: inherit; cursor: pointer; }
+
+        .dashboard-nav form { display: inline; margin: 0; }
+        .dashboard-nav .logout-link {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: #FFFFFF;
+            font: inherit;
+            font-weight: bold;
+            line-height: normal;
+            cursor: pointer;
+        }
         .logout-link:hover { color: #FAAF43; }
+
+        @media (max-width: 700px) {
+            .dashboard-header-content { min-height: 80px; padding: 16px 20px; align-items: flex-start; gap: 14px; flex-direction: column; }
+            .dashboard-nav { flex-wrap: wrap; gap: 10px; }
+        }
     </style>
 </head>
 
 <body>
 
-<header>
-    <h1>JG Digital Solutions</h1>
+<header class="dashboard-header">
+    <div class="dashboard-header-content">
+    <a class="brand-image-link" href="{{ path('app_home') }}" aria-label="JG Digital Solutions home"><img class="logo" src="{{ asset('image/Asset 1.png') }}" alt="JG Digital Solutions"></a>
 
-    <nav>
+    <nav class="dashboard-nav">
         <a href="{{ path('app_dashboard') }}">Dashboard</a>
         <a href="{{ path('app_profile') }}">My Profile</a>
-        <a href="{{ path('app_password_change') }}">Change Password</a>
         <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
     </nav>
+    </div>
 </header>
 
 <main>
@@ -157,6 +202,7 @@
             <textarea
                 name="description"
                 id="description"
+                maxlength="5000"
                 placeholder="Describe what you need..."
                 required
             >{{ formData.description }}</textarea>

@@ -8,13 +8,13 @@
 </head>
 <body class="admin-page">
 <header class="admin-header"><div class="admin-header-content">
-    <strong class="admin-logo">JG Digital Solutions</strong>
+    <a class="admin-logo" href="{{ path('app_home') }}" aria-label="JG Digital Solutions home"><img src="{{ asset('image/Asset 1.png') }}" alt="JG Digital Solutions"></a>
     <nav class="admin-nav">
         <a href="{{ path('app_admin_dashboard') }}">Dashboard</a>
         <a href="{{ path('app_admin_users') }}">Users</a>
         <a href="{{ path('app_admin_records') }}">Records</a>
-        <a href="{{ path('app_admin_messages') }}">Messages</a>
         <a href="{{ path('app_admin_service_requests') }}">Service Requests</a>
+        <a href="{{ path('app_admin_messages') }}">Messages</a>
         <a href="{{ path('app_profile') }}">My Profile</a>
         <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
     </nav>

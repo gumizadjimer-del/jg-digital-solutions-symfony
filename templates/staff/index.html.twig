@@ -9,13 +9,12 @@
 <body class="dashboard-page">
 <header class="admin-header">
     <div class="admin-header-content">
-        <strong class="admin-logo">JG Digital Solutions</strong>
+        <a class="admin-logo" href="{{ path('app_home') }}" aria-label="JG Digital Solutions home"><img src="{{ asset('image/Asset 1.png') }}" alt="JG Digital Solutions"></a>
         <nav class="admin-nav">
             <a href="{{ path('app_staff_dashboard') }}">Dashboard</a>
             <a href="{{ path('app_staff_records') }}">My Records</a>
             <a href="{{ path('app_staff_record_new') }}">Create Record</a>
             <a href="{{ path('app_profile') }}">My Profile</a>
-            <a href="{{ path('app_password_change') }}">Change Password</a>
             <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
         </nav>
     </div>

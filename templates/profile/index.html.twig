@@ -9,7 +9,7 @@
 <body class="admin-page">
 <header class="admin-header">
     <div class="admin-header-content">
-        <strong class="admin-logo">JG Digital Solutions</strong>
+        <a class="admin-logo" href="{{ path('app_home') }}" aria-label="JG Digital Solutions home"><img src="{{ asset('image/Asset 1.png') }}" alt="JG Digital Solutions"></a>
         <nav class="admin-nav">
             {% if is_granted('ROLE_ADMIN') %}
                 <a href="{{ path('app_admin_dashboard') }}">Admin Dashboard</a>
@@ -19,7 +19,6 @@
                 <a href="{{ path('app_dashboard') }}">Dashboard</a>
             {% endif %}
             <a href="{{ path('app_profile') }}">My Profile</a>
-            <a href="{{ path('app_password_change') }}">Change Password</a>
             <form method="post" action="{{ path('app_logout') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}"><button class="logout-link" type="submit">Logout</button></form>
         </nav>
     </div>
@@ -46,6 +45,7 @@
             </div>
             <button class="auth-button" type="submit">SAVE PROFILE</button>
         </form>
+        <p><a class="edit-button" href="{{ path('app_password_change') }}">CHANGE PASSWORD</a></p>
     </section>
 </main>
 </body>
